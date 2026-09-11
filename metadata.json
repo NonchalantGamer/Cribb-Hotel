@@ -1,0 +1,6 @@
+{
+  "name": "Cribb Hotel",
+  "description": "Luxury hospitality, accommodations, and guest experience at Cribb Hotel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
