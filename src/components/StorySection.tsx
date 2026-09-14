@@ -56,9 +56,12 @@ export const StorySection: React.FC<StorySectionProps> = ({ onOpenReserve }) => 
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#17283c] group-hover:underline flex items-center gap-1.5">
+                  <a
+                    href={index === 0 ? "#rooms" : index === 1 ? "#destinations" : "#club"}
+                    className="text-xs font-semibold uppercase tracking-wider text-[#17283c] hover:text-[#54657a] group-hover:underline flex items-center gap-1.5 cursor-pointer"
+                  >
                     Discover Space <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
+                  </a>
                 </div>
               </div>
             </div>

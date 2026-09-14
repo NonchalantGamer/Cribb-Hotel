@@ -84,15 +84,16 @@ export const ExperienceShowcase: React.FC<ExperienceShowcaseProps> = ({ onOpenRe
               {ROOM_OPTIONS.slice(0, 3).map((room) => (
                 <div 
                   key={room.id}
-                  className="bg-white border border-stone-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
+                  id={`experience-room-${room.id}`}
+                  className="bg-white border border-stone-200 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 ease-out transform hover:scale-[1.025] hover:-translate-y-1.5 flex flex-col group will-change-transform"
                 >
                   <div className="h-60 overflow-hidden relative">
                     <img 
                       src={room.imageUrl} 
                       alt={room.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                     />
-                    <span className="absolute top-3 right-3 bg-[#17283c] text-white text-[10px] font-mono uppercase tracking-wider px-2.5 py-1">
+                    <span className="absolute top-3 right-3 bg-[#17283c] text-white text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 shadow-sm">
                       {room.size}
                     </span>
                   </div>
@@ -102,7 +103,7 @@ export const ExperienceShowcase: React.FC<ExperienceShowcaseProps> = ({ onOpenRe
                       <span className="text-[11px] font-semibold text-[#54657a] uppercase tracking-wider block">
                         {room.category}
                       </span>
-                      <h3 className="text-xl font-serif font-bold text-[#17283c] mt-1 mb-2">
+                      <h3 className="text-xl font-serif font-bold text-[#17283c] mt-1 mb-2 group-hover:text-[#0f1c2d] transition-colors">
                         {room.title}
                       </h3>
                       <p className="text-xs text-stone-600 leading-relaxed line-clamp-2">
@@ -118,7 +119,8 @@ export const ExperienceShowcase: React.FC<ExperienceShowcaseProps> = ({ onOpenRe
                       </div>
                       <button
                         onClick={onOpenReserve}
-                        className="px-4 py-2 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-wider transition-colors border border-[#edd0b2]"
+                        id={`reserve-button-${room.id}`}
+                        className="px-4 py-2 bg-[#f8dec3] hover:bg-[#edd0b2] active:scale-95 text-[#17283c] text-xs font-bold uppercase tracking-wider transition-all border border-[#edd0b2]"
                       >
                         Reserve
                       </button>

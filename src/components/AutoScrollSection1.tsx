@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CAROUSEL_SECTION_1_IMAGES } from '../data/hotelData';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 interface AutoScrollSection1Props {
   onOpenReserve?: () => void;
@@ -9,17 +10,22 @@ interface AutoScrollSection1Props {
 
 export const AutoScrollSection1: React.FC<AutoScrollSection1Props> = ({ onOpenReserve }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
 
-  // Auto-scroll after every 3 seconds (3000ms)
+  // Auto transition automatically begins immediately as soon as the panel is revealed
+  const { ref: sectionRef, isVisible } = useIntersectionObserver<HTMLElement>({
+    threshold: 0.1,
+    triggerOnce: false,
+  });
+
+  // Auto-scroll after every 5 seconds (5000ms) once revealed
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isVisible) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % CAROUSEL_SECTION_1_IMAGES.length);
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isVisible]);
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % CAROUSEL_SECTION_1_IMAGES.length);
@@ -65,10 +71,9 @@ export const AutoScrollSection1: React.FC<AutoScrollSection1Props> = ({ onOpenRe
 
   return (
     <section 
+      ref={sectionRef}
       id="experience-carousel"
       className="py-16 lg:py-24 bg-[#efeae4]/50 border-b border-stone-200"
-      onMouseEnter={() => setIsPlaying(false)}
-      onMouseLeave={() => setIsPlaying(true)}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}
@@ -101,14 +106,6 @@ export const AutoScrollSection1: React.FC<AutoScrollSection1Props> = ({ onOpenRe
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-9 h-9 rounded-full bg-white border border-stone-200 hover:border-[#17283c] flex items-center justify-center text-[#17283c] transition-colors text-xs"
-                title={isPlaying ? "Pause auto-scroll (3s)" : "Resume auto-scroll (3s)"}
-                aria-label={isPlaying ? "Pause carousel" : "Play carousel"}
-              >
-                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              </button>
             </div>
           </div>
         </div>
@@ -134,7 +131,7 @@ export const AutoScrollSection1: React.FC<AutoScrollSection1Props> = ({ onOpenRe
               {/* Caption Overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 lg:p-14 text-white max-w-3xl">
                 <span className="inline-block px-3 py-1 bg-[#f8dec3] text-[#17283c] text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3">
-                  Experience Spotlight • Auto-cycles every 3s
+                  Experience Spotlight
                 </span>
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white mb-2">
                   {activeItem.caption}
@@ -154,15 +151,17 @@ export const AutoScrollSection1: React.FC<AutoScrollSection1Props> = ({ onOpenRe
             </motion.div>
           </AnimatePresence>
 
-          {/* Progress Indicator Bar (3-second cycle) */}
+          {/* Progress Indicator Bar (5-second cycle) */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-20">
-            <motion.div
-              key={`progress-${currentIndex}-${isPlaying}`}
-              initial={{ width: "0%" }}
-              animate={{ width: isPlaying ? "100%" : "0%" }}
-              transition={{ duration: 3, ease: "linear" }}
-              className="h-full bg-[#f8dec3]"
-            />
+            {isVisible && (
+              <motion.div
+                key={`progress-${currentIndex}`}
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 5, ease: "linear" }}
+                className="h-full bg-[#f8dec3]"
+              />
+            )}
           </div>
 
           {/* Slide Dots */}

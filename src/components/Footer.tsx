@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Globe, Phone, MapPin, ShieldCheck } from 'lucide-react';
+import { Mail, Globe, Phone, MapPin, ShieldCheck, ArrowUp } from 'lucide-react';
 import { DESTINATIONS } from '../data/hotelData';
 
 interface FooterProps {
@@ -123,6 +123,14 @@ export const Footer: React.FC<FooterProps> = ({ onOpenReserve }) => {
             <span>•</span>
             <span className="hover:text-white cursor-pointer">Digital Accessibility</span>
           </div>
+          <a
+            href="#"
+            className="flex items-center gap-1.5 text-xs text-[#f8dec3] hover:text-white transition-colors cursor-pointer"
+            aria-label="Back to top"
+          >
+            <ArrowUp className="w-3.5 h-3.5" />
+            <span>Back to Top</span>
+          </a>
         </div>
       </div>
     </footer>

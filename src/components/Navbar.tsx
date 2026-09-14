@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Menu, ArrowLeft, User, ChevronRight, ChevronDown, Calendar, Globe, ShieldCheck, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { smoothScrollTo } from '../utils/scroll';
 
 interface NavbarProps {
   onOpenReserve: () => void;
@@ -24,6 +26,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve }) => {
       document.body.style.overflow = '';
     };
   }, [mobileMenuOpen, showSignInModal]);
+
+  // Handle ESC key to dismiss menu or modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showSignInModal) setShowSignInModal(false);
+        else if (mobileMenuOpen) setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen, showSignInModal]);
+
+  const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      smoothScrollTo(href);
+    }, 280);
+  };
 
   const handleSignInSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,15 +103,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve }) => {
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Mobile Hamburger Trigger */}
-          <div className="flex items-center lg:hidden">
+          {/* Menu Trigger Button (Accessible across all viewport widths) */}
+          <div className="flex items-center">
             <button
               onClick={() => setMobileMenuOpen(true)}
               id="mobile-nav-toggle-button"
-              className="p-2 text-[#17283c] hover:text-[#0f1c2d] focus:outline-none"
+              className="p-2 -ml-2 text-[#17283c] hover:text-[#0f1c2d] focus:outline-none transition-colors group cursor-pointer"
               aria-label="Open navigation menu"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6 group-hover:scale-105 transition-transform" />
             </button>
           </div>
 
@@ -131,156 +154,240 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve }) => {
         </div>
       </div>
 
-      {/* Mobile Navigation Menu matching the provided reference screenshot */}
-      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
-        <div 
-          id="mobile-navigation-overlay"
-          className="fixed inset-0 z-[9999] lg:hidden bg-black text-white flex flex-col w-screen min-h-[100dvh] h-[100dvh] overflow-y-auto"
-        >
-          {/* Top Header Bar */}
-          <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-4 border-b border-stone-800/60 bg-black">
-            {/* Back / Close Button (Left) with charcoal container and thin white left arrow */}
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              id="mobile-nav-back-button"
-              className="w-11 h-11 bg-[#333333] hover:bg-[#404040] active:bg-[#262626] text-white flex items-center justify-center transition-colors focus:outline-none"
-              aria-label="Back to page"
+      {/* Navigation Menu with smooth horizontal sideways in-and-out transition */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <div 
+              id="navigation-menu-portal"
+              className="fixed inset-0 z-[9999] flex"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation Menu"
             >
-              <ArrowLeft className="w-5 h-5 stroke-[2]" />
-            </button>
-
-            {/* Brand Logo & Circular Emblem (Center) */}
-            <div className="flex flex-col items-center">
-              <div className="w-8 h-8 relative flex items-center justify-center mb-0.5">
-                <svg viewBox="0 0 40 40" className="w-full h-full text-white" fill="none" stroke="currentColor">
-                  <circle cx="20" cy="20" r="17" strokeWidth="1.2" strokeDasharray="3 2" className="opacity-40" />
-                  <path d="M12 28 C9 24 9 16 13 11 C15 9 18 8 20 8 M28 28 C31 24 31 16 27 11 C25 9 22 8 20 8" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M11 16 C9 15 8 13 9 11 C11 11 13 13 13 15 M29 16 C31 15 32 13 31 11 C29 11 27 13 27 15" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M10 22 C8 21 7 19 8 18 C10 18 11 20 11 21 M30 22 C32 21 33 19 32 18 C30 18 29 20 29 21" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M13 27 C11 27 10 25 11 24 C13 24 14 25 14 26 M27 27 C29 27 30 25 29 24 C27 24 26 25 26 26" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span className="absolute font-serif font-bold text-[13px] text-white leading-none">C</span>
-              </div>
-              <span className="text-xs sm:text-sm font-sans font-bold tracking-[0.3em] text-white uppercase">
-                CRIBB
-              </span>
-            </div>
-
-            {/* User Account Link (Right): Icon + "SIGN IN OR JOIN" */}
-            <button
-              onClick={() => setShowSignInModal(true)}
-              id="mobile-nav-signin-button"
-              className="flex items-center gap-1.5 text-white hover:text-[#fbe1c9] transition-colors py-2 px-1 focus:outline-none"
-            >
-              <User className="w-4 h-4 text-white" />
-              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider font-sans whitespace-nowrap">
-                SIGN IN OR JOIN
-              </span>
-            </button>
-          </div>
-
-          {/* Full-width Call-To-Action "RESERVE NOW" Button with soft peach color and flat 90-degree corners */}
-          <div className="flex-shrink-0 px-4 sm:px-6 pt-5 pb-8">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenReserve();
-              }}
-              id="mobile-nav-reserve-now-btn"
-              className="w-full py-4 bg-[#fbe1c9] hover:bg-[#edd0b2] active:bg-[#e4c4a4] text-[#111111] font-bold text-xs sm:text-sm tracking-[0.2em] uppercase rounded-none transition-all duration-150 active:scale-[0.99] text-center shadow-none border-none"
-            >
-              RESERVE NOW
-            </button>
-          </div>
-
-          {/* Primary Navigation Menu List (Vertically stacked, white, bold, uppercase sans-serif) */}
-          <nav className="px-5 sm:px-7 space-y-7 sm:space-y-8 flex-1 overflow-y-auto">
-            {/* DESTINATIONS */}
-            <div>
-              <a
-                href="#destinations"
+              {/* Dimmed backdrop overlay that fades in/out and closes when clicked */}
+              <motion.div
+                key="menu-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase hover:text-[#fbe1c9] transition-colors"
-              >
-                DESTINATIONS
-              </a>
-            </div>
+                className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+                aria-hidden="true"
+              />
 
-            {/* EXPERIENCE (with small thin right chevron on the far right) */}
-            <div>
-              <div
-                onClick={() => setExperienceExpanded(!experienceExpanded)}
-                className="flex items-center justify-between text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase cursor-pointer hover:text-[#fbe1c9] transition-colors"
+              {/* Drawer Menu sliding strictly sideways (horizontal x-axis only) */}
+              <motion.div 
+                key="menu-drawer-panel"
+                id="mobile-navigation-overlay"
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ 
+                  duration: 0.38, 
+                  ease: [0.32, 0.72, 0, 1] 
+                }}
+                className="relative z-10 w-full sm:max-w-md md:max-w-lg bg-black text-white flex flex-col min-h-[100dvh] h-[100dvh] shadow-2xl overflow-y-auto"
               >
-                <span>EXPERIENCE</span>
-                {experienceExpanded ? (
-                  <ChevronDown className="w-5 h-5 text-white stroke-[1.5]" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-white stroke-[1.5]" />
-                )}
-              </div>
+                {/* Top Header Bar */}
+                <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-4 border-b border-stone-800/60 bg-black">
+                  {/* Back / Close Button (Left) with charcoal container and thin white left arrow */}
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    id="mobile-nav-back-button"
+                    className="w-11 h-11 bg-[#333333] hover:bg-[#404040] active:bg-[#262626] text-white flex items-center justify-center transition-colors focus:outline-none cursor-pointer"
+                    aria-label="Back to page"
+                  >
+                    <ArrowLeft className="w-5 h-5 stroke-[2]" />
+                  </button>
 
-              {/* Sub-menu accordion when Experience is expanded */}
-              {experienceExpanded && (
-                <div className="pl-4 pt-3 space-y-3.5 text-xs uppercase tracking-widest text-stone-300 animate-in fade-in slide-in-from-top-2 duration-200 border-l border-stone-800 ml-1 mt-2">
-                  <a
-                    href="#rooms"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block hover:text-white"
+                  {/* Brand Logo & Circular Emblem (Center) */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 relative flex items-center justify-center mb-0.5">
+                      <svg viewBox="0 0 40 40" className="w-full h-full text-white" fill="none" stroke="currentColor">
+                        <circle cx="20" cy="20" r="17" strokeWidth="1.2" strokeDasharray="3 2" className="opacity-40" />
+                        <path d="M12 28 C9 24 9 16 13 11 C15 9 18 8 20 8 M28 28 C31 24 31 16 27 11 C25 9 22 8 20 8" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M11 16 C9 15 8 13 9 11 C11 11 13 13 13 15 M29 16 C31 15 32 13 31 11 C29 11 27 13 27 15" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 22 C8 21 7 19 8 18 C10 18 11 20 11 21 M30 22 C32 21 33 19 32 18 C30 18 29 20 29 21" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M13 27 C11 27 10 25 11 24 C13 24 14 25 14 26 M27 27 C29 27 30 25 29 24 C27 24 26 25 26 26" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="absolute font-serif font-bold text-[13px] text-white leading-none">C</span>
+                    </div>
+                    <span className="text-xs sm:text-sm font-sans font-bold tracking-[0.3em] text-white uppercase">
+                      CRIBB
+                    </span>
+                  </div>
+
+                  {/* User Account Link (Right): Icon + "SIGN IN OR JOIN" */}
+                  <button
+                    onClick={() => setShowSignInModal(true)}
+                    id="mobile-nav-signin-button"
+                    className="flex items-center gap-1.5 text-white hover:text-[#fbe1c9] transition-colors py-2 px-1 focus:outline-none cursor-pointer"
                   >
-                    Rooms &amp; Suites
-                  </a>
-                  <a
-                    href="#rooms"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block hover:text-white"
-                  >
-                    Dining &amp; Bars
-                  </a>
-                  <a
-                    href="#rooms"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block hover:text-white"
-                  >
-                    Meetings &amp; Events
-                  </a>
-                  <a
-                    href="#rooms"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block hover:text-white"
-                  >
-                    Spa &amp; Wellness
-                  </a>
+                    <User className="w-4 h-4 text-white" />
+                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider font-sans whitespace-nowrap">
+                      SIGN IN OR JOIN
+                    </span>
+                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* ABOUT US */}
-            <div>
-              <a
-                href="#story"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase hover:text-[#fbe1c9] transition-colors"
-              >
-                ABOUT US
-              </a>
-            </div>
+                {/* Full-width Call-To-Action "RESERVE NOW" Button with soft peach color and flat 90-degree corners */}
+                <div className="flex-shrink-0 px-4 sm:px-6 pt-5 pb-8">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenReserve();
+                    }}
+                    id="mobile-nav-reserve-now-btn"
+                    className="w-full py-4 bg-[#fbe1c9] hover:bg-[#edd0b2] active:bg-[#e4c4a4] text-[#111111] font-bold text-xs sm:text-sm tracking-[0.2em] uppercase rounded-none transition-all duration-150 active:scale-[0.99] text-center shadow-none border-none cursor-pointer"
+                  >
+                    RESERVE NOW
+                  </button>
+                </div>
 
-            {/* STORE */}
-            <div>
-              <a
-                href="#club"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase hover:text-[#fbe1c9] transition-colors"
-              >
-                STORE
-              </a>
-            </div>
-          </nav>
+                {/* Primary Navigation Menu List (Vertically stacked with smooth sideways entry) */}
+                <motion.nav 
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={{
+                    visible: {
+                      transition: {
+                        staggerChildren: 0.05,
+                        delayChildren: 0.12
+                      }
+                    },
+                    hidden: {
+                      transition: {
+                        staggerChildren: 0.03,
+                        staggerDirection: -1
+                      }
+                    }
+                  }}
+                  className="px-5 sm:px-7 space-y-7 sm:space-y-8 flex-1 overflow-y-auto"
+                >
+                  {/* DESTINATIONS */}
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, x: -16 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                  >
+                    <a
+                      href="#destinations"
+                      onClick={(e) => handleMobileNavClick(e, '#destinations')}
+                      className="block text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase hover:text-[#fbe1c9] transition-colors"
+                    >
+                      DESTINATIONS
+                    </a>
+                  </motion.div>
 
-          {/* Lower area stays clean solid black, matching the reference screenshot */}
-          <div className="h-16 w-full flex-shrink-0 bg-black" />
-        </div>,
+                  {/* EXPERIENCE (with small thin right chevron on the far right) */}
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, x: -16 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                  >
+                    <div
+                      onClick={() => setExperienceExpanded(!experienceExpanded)}
+                      className="flex items-center justify-between text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase cursor-pointer hover:text-[#fbe1c9] transition-colors"
+                    >
+                      <span>EXPERIENCE</span>
+                      {experienceExpanded ? (
+                        <ChevronDown className="w-5 h-5 text-white stroke-[1.5]" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-white stroke-[1.5]" />
+                      )}
+                    </div>
+
+                    {/* Sub-menu accordion when Experience is expanded - horizontal slide animation */}
+                    <AnimatePresence>
+                      {experienceExpanded && (
+                        <motion.div 
+                          initial={{ opacity: 0, x: -16 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -16 }}
+                          transition={{ duration: 0.22, ease: "easeOut" }}
+                          className="pl-4 pt-3 space-y-3.5 text-xs uppercase tracking-widest text-stone-300 border-l border-stone-800 ml-1 mt-2"
+                        >
+                          <a
+                            href="#rooms"
+                            onClick={(e) => handleMobileNavClick(e, '#rooms')}
+                            className="block hover:text-white"
+                          >
+                            Rooms &amp; Suites
+                          </a>
+                          <a
+                            href="#rooms"
+                            onClick={(e) => handleMobileNavClick(e, '#rooms')}
+                            className="block hover:text-white"
+                          >
+                            Dining &amp; Bars
+                          </a>
+                          <a
+                            href="#rooms"
+                            onClick={(e) => handleMobileNavClick(e, '#rooms')}
+                            className="block hover:text-white"
+                          >
+                            Meetings &amp; Events
+                          </a>
+                          <a
+                            href="#rooms"
+                            onClick={(e) => handleMobileNavClick(e, '#rooms')}
+                            className="block hover:text-white"
+                          >
+                            Spa &amp; Wellness
+                          </a>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  {/* ABOUT US */}
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, x: -16 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                  >
+                    <a
+                      href="#story"
+                      onClick={(e) => handleMobileNavClick(e, '#story')}
+                      className="block text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase hover:text-[#fbe1c9] transition-colors"
+                    >
+                      ABOUT US
+                    </a>
+                  </motion.div>
+
+                  {/* STORE */}
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, x: -16 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                  >
+                    <a
+                      href="#club"
+                      onClick={(e) => handleMobileNavClick(e, '#club')}
+                      className="block text-base sm:text-lg font-bold tracking-[0.12em] text-white uppercase hover:text-[#fbe1c9] transition-colors"
+                    >
+                      STORE
+                    </a>
+                  </motion.div>
+                </motion.nav>
+
+                {/* Lower area stays clean solid black, matching the reference screenshot */}
+                <div className="h-16 w-full flex-shrink-0 bg-black" />
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 

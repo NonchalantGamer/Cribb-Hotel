@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Pause, Play, Sparkles, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react';
 import { CAROUSEL_SECTION_2_IMAGES } from '../data/hotelData';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 interface AutoScrollSection2Props {
   onOpenReserve?: () => void;
@@ -9,17 +10,22 @@ interface AutoScrollSection2Props {
 
 export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenReserve }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
 
-  // Auto scroll after every 3 seconds
+  // Auto transition automatically begins immediately as soon as the panel is revealed
+  const { ref: sectionRef, isVisible } = useIntersectionObserver<HTMLElement>({
+    threshold: 0.1,
+    triggerOnce: false,
+  });
+
+  // Auto scroll after every 5 seconds once revealed
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isVisible) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % CAROUSEL_SECTION_2_IMAGES.length);
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isVisible]);
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % CAROUSEL_SECTION_2_IMAGES.length);
@@ -70,10 +76,9 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
 
   return (
     <section 
+      ref={sectionRef}
       id="destinations" 
       className="py-20 lg:py-28 bg-[#17283c] text-white overflow-hidden relative"
-      onMouseEnter={() => setIsPlaying(false)}
-      onMouseLeave={() => setIsPlaying(true)}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -93,35 +98,21 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <span className="text-xs text-stone-400 uppercase tracking-wider block">Auto Transition</span>
-              <span className="text-sm font-mono text-[#f8dec3]">3 Seconds / Frame</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePrev}
-                className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleNext}
-                className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
-                aria-label="Next image"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
-                title={isPlaying ? "Pause auto-scroll" : "Play auto-scroll"}
-                aria-label={isPlaying ? "Pause auto-scroll" : "Play auto-scroll"}
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrev}
+              className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleNext}
+              className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
@@ -173,15 +164,17 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
             </motion.div>
           </AnimatePresence>
 
-          {/* Continuous 3-second cycle progress bar */}
+          {/* Continuous 5-second cycle progress bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 z-20">
-            <motion.div
-              key={`sec2-progress-${currentIndex}-${isPlaying}`}
-              initial={{ width: "0%" }}
-              animate={{ width: isPlaying ? "100%" : "0%" }}
-              transition={{ duration: 3, ease: "linear" }}
-              className="h-full bg-[#f8dec3]"
-            />
+            {isVisible && (
+              <motion.div
+                key={`sec2-progress-${currentIndex}`}
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 5, ease: "linear" }}
+                className="h-full bg-[#f8dec3]"
+              />
+            )}
           </div>
         </div>
 

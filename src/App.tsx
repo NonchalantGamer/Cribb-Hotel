@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { StorySection } from './components/StorySection';
@@ -14,12 +14,38 @@ import { RewardsSection } from './components/RewardsSection';
 import { Footer } from './components/Footer';
 import { ReservationModal } from './components/ReservationModal';
 import { AiConciergeChat } from './components/AiConciergeChat';
+import { ScrollReveal } from './components/ScrollReveal';
 import { ReservationParams } from './types';
+import { smoothScrollTo } from './utils/scroll';
 
 export default function App() {
   const [isReserveOpen, setIsReserveOpen] = useState(false);
   const [reserveParams, setReserveParams] = useState<Partial<ReservationParams> | undefined>(undefined);
   const [conciergeQuery, setConciergeQuery] = useState<string | null>(null);
+
+  // Global smooth scroll behavior for any navigation links or anchor clicks
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest('a[href^="#"]');
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      e.preventDefault();
+      smoothScrollTo(href);
+
+      // Update URL hash cleanly without instant jump cut
+      if (href.length > 1) {
+        window.history.pushState(null, '', href);
+      } else {
+        window.history.pushState(null, '', window.location.pathname);
+      }
+    };
+
+    document.addEventListener('click', handleAnchorClick);
+    return () => document.removeEventListener('click', handleAnchorClick);
+  }, []);
 
   const handleOpenReserve = (initialParams?: Partial<ReservationParams>) => {
     if (initialParams) {
@@ -47,23 +73,35 @@ export default function App() {
         <HeroSection onOpenReserve={handleOpenReserve} />
 
         {/* Philosophy & Story: Where the world comes together */}
-        <StorySection onOpenReserve={() => handleOpenReserve()} />
+        <ScrollReveal threshold={0.1} rootMargin="0px 0px -50px 0px" duration={750} distance={24}>
+          <StorySection onOpenReserve={() => handleOpenReserve()} />
+        </ScrollReveal>
 
         {/* Auto Scroll Section 1 (3 images, 3s cycle, unique fade-in animation) */}
-        <AutoScrollSection1 onOpenReserve={() => handleOpenReserve()} />
+        <ScrollReveal threshold={0.1} rootMargin="0px 0px -50px 0px" duration={750} distance={24}>
+          <AutoScrollSection1 onOpenReserve={() => handleOpenReserve()} />
+        </ScrollReveal>
 
         {/* Experience Cribb (Rooms, Dining, Events, Spa) */}
-        <ExperienceShowcase onOpenReserve={() => handleOpenReserve()} />
+        <ScrollReveal threshold={0.06} rootMargin="0px 0px -50px 0px" duration={750} distance={24}>
+          <ExperienceShowcase onOpenReserve={() => handleOpenReserve()} />
+        </ScrollReveal>
 
         {/* Auto Scroll Section 2 (8 images, 3s cycle, unique fade-in animation) */}
-        <AutoScrollSection2 onOpenReserve={() => handleOpenReserve()} />
+        <ScrollReveal threshold={0.1} rootMargin="0px 0px -50px 0px" duration={750} distance={24}>
+          <AutoScrollSection2 onOpenReserve={() => handleOpenReserve()} />
+        </ScrollReveal>
 
         {/* Cribb Rewards & Loyalty Section */}
-        <RewardsSection onOpenReserve={() => handleOpenReserve()} />
+        <ScrollReveal threshold={0.1} rootMargin="0px 0px -50px 0px" duration={750} distance={24}>
+          <RewardsSection onOpenReserve={() => handleOpenReserve()} />
+        </ScrollReveal>
       </main>
 
       {/* Global Luxury Footer */}
-      <Footer onOpenReserve={() => handleOpenReserve()} />
+      <ScrollReveal threshold={0.05} rootMargin="0px 0px -40px 0px" duration={700} distance={20}>
+        <Footer onOpenReserve={() => handleOpenReserve()} />
+      </ScrollReveal>
 
       {/* Interactive Reservation Modal (Matches Reserve Now click design) */}
       <ReservationModal
