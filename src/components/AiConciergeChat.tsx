@@ -95,11 +95,23 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
     }
   }, [isOpen]);
 
+  const handleSelectSuggestedPrompt = (prompt: string) => {
+    setInputMessage(prompt);
+    // Focus typing bar and position cursor at the end for the user to edit or manually send
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const len = prompt.length;
+        textareaRef.current.setSelectionRange(len, len);
+      }
+    }, 50);
+  };
+
   // Handle external trigger query (e.g. from Hero or other sections)
   useEffect(() => {
     if (initialQuery) {
       setIsOpen(true);
-      sendMessage(initialQuery);
+      handleSelectSuggestedPrompt(initialQuery);
       if (onClearInitialQuery) onClearInitialQuery();
     }
   }, [initialQuery]);
@@ -426,9 +438,11 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
             {suggestedPrompts.map((prompt, idx) => (
               <button
                 key={idx}
-                onClick={() => sendMessage(prompt)}
+                type="button"
+                onClick={() => handleSelectSuggestedPrompt(prompt)}
                 disabled={loading}
-                className="whitespace-nowrap px-2.5 py-1 bg-stone-100 hover:bg-[#efeae4] active:bg-[#f8dec3] text-[#17283c] text-[10px] font-medium border border-stone-200 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                className="whitespace-nowrap px-2.5 py-1 bg-stone-100 hover:bg-[#efeae4] active:bg-[#f8dec3] text-[#17283c] text-[10px] font-medium border border-stone-200 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 cursor-pointer"
+                title="Insert prompt to edit and send"
               >
                 {prompt}
               </button>
