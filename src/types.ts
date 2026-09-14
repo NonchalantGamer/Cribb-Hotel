@@ -41,3 +41,61 @@ export interface ReservationParams {
   rateType: string;
   usePoints: boolean;
 }
+
+export type BookingStatus = 'Confirmed' | 'Checked In' | 'Checked Out' | 'Cancelled';
+export type PaymentStatus = 'Paid' | 'Pending' | 'Deposit Paid';
+export type RoomCleanStatus = 'Clean & Inspected' | 'Dirty / In Progress' | 'Turn-down Required' | 'Maintenance Required';
+
+export interface BookingRecord {
+  id: string;
+  confirmationId: string;
+  destination: string;
+  roomTypeId: string;
+  roomTitle: string;
+  roomNumber?: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  specialRequests?: string;
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  roomsCount: number;
+  pricePerNight: number;
+  totalNights: number;
+  totalAmount: number;
+  status: BookingStatus;
+  paymentStatus: PaymentStatus;
+  rateType: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HotelRoomInventory {
+  id: string;
+  roomNumber: string;
+  floor: number;
+  wing: string;
+  roomTypeId: string;
+  roomTitle: string;
+  isOccupied: boolean;
+  currentBookingId?: string | null;
+  currentGuestName?: string | null;
+  checkOutDate?: string | null;
+  cleanStatus: RoomCleanStatus;
+  keycardActive: boolean;
+  ratePerNight: number;
+}
+
+export interface HotelServiceRequest {
+  id: string;
+  roomNumber: string;
+  guestName: string;
+  category: 'Housekeeping' | 'Room Service' | 'Maintenance' | 'Concierge' | 'Luggage Transfer';
+  request: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  status: 'Open' | 'In Progress' | 'Completed';
+  createdAt: string;
+}

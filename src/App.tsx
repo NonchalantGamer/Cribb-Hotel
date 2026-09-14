@@ -13,6 +13,7 @@ import { AutoScrollSection2 } from './components/AutoScrollSection2';
 import { RewardsSection } from './components/RewardsSection';
 import { Footer } from './components/Footer';
 import { ReservationModal } from './components/ReservationModal';
+import { AdminPortal } from './components/AdminPortal';
 import { AiConciergeChat } from './components/AiConciergeChat';
 import { ScrollReveal } from './components/ScrollReveal';
 import { ReservationParams } from './types';
@@ -20,6 +21,7 @@ import { smoothScrollTo } from './utils/scroll';
 
 export default function App() {
   const [isReserveOpen, setIsReserveOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [reserveParams, setReserveParams] = useState<Partial<ReservationParams> | undefined>(undefined);
   const [conciergeQuery, setConciergeQuery] = useState<string | null>(null);
 
@@ -65,7 +67,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#faf9f6] text-[#17283c] flex flex-col font-sans selection:bg-[#f8dec3] selection:text-[#17283c]">
       {/* Navigation Bar */}
-      <Navbar onOpenReserve={() => handleOpenReserve()} />
+      <Navbar 
+        onOpenReserve={() => handleOpenReserve()} 
+        onOpenAdmin={() => setIsAdminOpen(true)}
+      />
 
       {/* Main Content Sections */}
       <main className="flex-1">
@@ -100,7 +105,10 @@ export default function App() {
 
       {/* Global Luxury Footer */}
       <ScrollReveal threshold={0.05} rootMargin="0px 0px -40px 0px" duration={700} distance={20}>
-        <Footer onOpenReserve={() => handleOpenReserve()} />
+        <Footer 
+          onOpenReserve={() => handleOpenReserve()} 
+          onOpenAdmin={() => setIsAdminOpen(true)}
+        />
       </ScrollReveal>
 
       {/* Interactive Reservation Modal (Matches Reserve Now click design) */}
@@ -109,6 +117,12 @@ export default function App() {
         onClose={handleCloseReserve}
         initialParams={reserveParams}
         onAskConcierge={handleAskConcierge}
+      />
+
+      {/* Hotel Staff & Operational Admin Portal (Powered by Firebase Firestore) */}
+      <AdminPortal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
       />
 
       {/* AI Integrated Real-Time Customer Support / Concierge with RAG */}

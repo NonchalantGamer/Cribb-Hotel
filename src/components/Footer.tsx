@@ -4,9 +4,10 @@ import { DESTINATIONS } from '../data/hotelData';
 
 interface FooterProps {
   onOpenReserve: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenReserve }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenReserve, onOpenAdmin }) => {
   return (
     <footer className="bg-[#0f1c2d] text-stone-300 pt-16 pb-12 border-t border-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -93,6 +94,17 @@ export const Footer: React.FC<FooterProps> = ({ onOpenReserve }) => {
                   Digital Key &amp; Mobile Check-In
                 </span>
               </li>
+              {onOpenAdmin && (
+                <li className="pt-1">
+                  <button
+                    onClick={onOpenAdmin}
+                    className="text-[#f8dec3] hover:text-white transition-colors cursor-pointer font-semibold flex items-center gap-1.5"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Staff &amp; Admin Portal
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
 

@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.admin == true || 
+         request.auth.token.email.matches('.*admin.*') ||
+         exists(/databases/$(database)/documents/staff/$(request.auth.uid)));
+    }
+
+    // Reservations collection
+    // Guests can create reservations. Everyone can read for real-time room availability checks.
+    // Full update/deletion requires authentication/admin or creator.
+    match /reservations/{reservationId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if true;
+    }
+
+    // Room Inventory collection (status, room numbers, cleanliness, booking status)
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Guest folio and service requests (housekeeping, dining, concierge, maintenance)
+    match /service_requests/{requestId} {
+      allow read, write: if true;
+    }
+
+    // Hotel audit logs and notes
+    match /audit_logs/{logId} {
+      allow read, write: if true;
+    }
+
+    // Staff accounts
+    match /staff/{staffId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

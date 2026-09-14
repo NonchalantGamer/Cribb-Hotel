@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { X, Search, Calendar, Users, MapPin, Tag, Check, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { X, Search, Calendar, Users, MapPin, Tag, Check, ArrowRight, ShieldCheck, Sparkles, Loader2, Phone } from 'lucide-react';
 import { DESTINATIONS, ROOM_OPTIONS } from '../data/hotelData';
-import { ReservationParams } from '../types';
+import { ReservationParams, BookingRecord } from '../types';
+import { createReservationInFirebase } from '../lib/hotelDatabaseService';
 
 interface ReservationModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialParams?: Partial<ReservationParams>;
   onAskConcierge?: (prompt: string) => void;
+  onBookingCreated?: (booking: BookingRecord) => void;
 }
 
 export const ReservationModal: React.FC<ReservationModalProps> = ({
   isOpen,
   onClose,
   initialParams,
-  onAskConcierge
+  onAskConcierge,
+  onBookingCreated
 }) => {
   const [destination, setDestination] = useState(initialParams?.destination || "Cribb Lagos Hotel");
   const [checkIn, setCheckIn] = useState(initialParams?.checkIn || "Oct 15, 2026");
@@ -30,6 +33,9 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("+234 800 000 0000");
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [submittingBooking, setSubmittingBooking] = useState(false);
 
   if (!isOpen) return null;
 
@@ -39,19 +45,64 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
     setBookingConfirmed(null);
   };
 
-  const handleConfirmBooking = (roomTitle: string, price: number) => {
+  const handleConfirmBooking = async (roomTitle: string, roomTypeId: string, price: number) => {
+    if (!guestName.trim()) {
+      alert("Please enter guest name to proceed with the reservation.");
+      return;
+    }
+    setSubmittingBooking(true);
     const confirmationId = "CRB-" + Math.floor(100000 + Math.random() * 900000);
-    setBookingConfirmed({
-      confirmationId,
-      destination,
-      roomTitle,
-      price,
-      checkIn,
-      checkOut,
-      guests: `${adults} Adults${children > 0 ? `, ${children} Children` : ''}`,
-      name: guestName || "Honored Guest",
-      email: guestEmail || "guest@cribbhotels.com"
-    });
+    const nights = 3; // Estimated nights or calculated
+    const totalAmount = price * nights;
+
+    // Pick a realistic room number corresponding to room type
+    const roomNumberMap: Record<string, string> = {
+      'deluxe-king': '102',
+      'deluxe-double': '101',
+      'club-king': '202',
+      'ambassador-suite': '402',
+      'presidential-suite': '501'
+    };
+    const assignedRoomNumber = roomNumberMap[roomTypeId] || '105';
+
+    try {
+      const newBooking = await createReservationInFirebase({
+        confirmationId,
+        destination,
+        roomTypeId,
+        roomTitle,
+        roomNumber: assignedRoomNumber,
+        guestName: guestName.trim(),
+        guestEmail: guestEmail.trim() || 'guest@cribbhotels.com',
+        guestPhone: guestPhone.trim() || '+1 555 0192',
+        specialRequests: specialRequests.trim() || undefined,
+        checkIn,
+        checkOut,
+        adults,
+        children,
+        roomsCount: rooms,
+        pricePerNight: price,
+        totalNights: nights,
+        totalAmount,
+        status: 'Confirmed',
+        paymentStatus: 'Paid',
+        rateType
+      });
+
+      setBookingConfirmed({
+        ...newBooking,
+        guests: `${adults} Adults${children > 0 ? `, ${children} Children` : ''}`,
+        price
+      });
+
+      if (onBookingCreated) {
+        onBookingCreated(newBooking);
+      }
+    } catch (err) {
+      console.error('Failed to create booking in Firebase:', err);
+    } finally {
+      setSubmittingBooking(false);
+    }
   };
 
   return (
@@ -329,40 +380,83 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                         </div>
 
                         {selectedRoom === room.id ? (
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <input
-                              type="text"
-                              placeholder="Guest Name"
-                              value={guestName}
-                              onChange={(e) => setGuestName(e.target.value)}
-                              className="h-9 px-3 text-xs border border-stone-300 w-32 focus:outline-none focus:border-[#17283c]"
-                            />
-                            <input
-                              type="email"
-                              placeholder="Email Address"
-                              value={guestEmail}
-                              onChange={(e) => setGuestEmail(e.target.value)}
-                              className="h-9 px-3 text-xs border border-stone-300 w-36 focus:outline-none focus:border-[#17283c]"
-                            />
-                            <button
-                              onClick={() => handleConfirmBooking(room.title, room.pricePerNight)}
-                              className="h-9 px-4 bg-[#17283c] hover:bg-[#0f1c2d] text-white text-xs font-bold uppercase tracking-wider transition-colors"
-                            >
-                              Confirm
-                            </button>
-                            <button
-                              onClick={() => setSelectedRoom(null)}
-                              className="text-xs text-stone-400 hover:text-stone-700 px-1"
-                            >
-                              Cancel
-                            </button>
+                          <div className="flex flex-col gap-2.5 w-full bg-stone-50 p-3 border border-stone-200 mt-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                              <div>
+                                <label className="text-[10px] uppercase font-bold text-stone-600 block mb-0.5">Guest Full Name *</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Elena Rostova"
+                                  value={guestName}
+                                  onChange={(e) => setGuestName(e.target.value)}
+                                  className="h-8 px-2.5 text-xs bg-white border border-stone-300 w-full focus:outline-none focus:border-[#17283c]"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase font-bold text-stone-600 block mb-0.5">Email Address</label>
+                                <input
+                                  type="email"
+                                  placeholder="guest@example.com"
+                                  value={guestEmail}
+                                  onChange={(e) => setGuestEmail(e.target.value)}
+                                  className="h-8 px-2.5 text-xs bg-white border border-stone-300 w-full focus:outline-none focus:border-[#17283c]"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase font-bold text-stone-600 block mb-0.5">Contact Phone</label>
+                                <input
+                                  type="tel"
+                                  placeholder="+234 803 123 4567"
+                                  value={guestPhone}
+                                  onChange={(e) => setGuestPhone(e.target.value)}
+                                  className="h-8 px-2.5 text-xs bg-white border border-stone-300 w-full focus:outline-none focus:border-[#17283c]"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] uppercase font-bold text-stone-600 block mb-0.5">Special Requests or Arrival Notes</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Late check-in after 8 PM, high floor, feather-free pillows"
+                                value={specialRequests}
+                                onChange={(e) => setSpecialRequests(e.target.value)}
+                                className="h-8 px-2.5 text-xs bg-white border border-stone-300 w-full focus:outline-none focus:border-[#17283c]"
+                              />
+                            </div>
+                            <div className="flex items-center justify-end gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRoom(null)}
+                                className="text-xs text-stone-500 hover:text-stone-800 px-3 py-1.5"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                disabled={submittingBooking || !guestName.trim()}
+                                onClick={() => handleConfirmBooking(room.title, room.id, room.pricePerNight)}
+                                className="h-8 px-5 bg-[#17283c] hover:bg-[#0f1c2d] text-white text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                              >
+                                {submittingBooking ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Syncing to Firebase...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="w-3.5 h-3.5 text-[#f8dec3]" />
+                                    <span>Confirm &amp; Book</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <button
                             onClick={() => {
                               setSelectedRoom(room.id);
                             }}
-                            className="px-6 py-2 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-widest border border-[#edd0b2] transition-colors flex items-center gap-1.5"
+                            className="px-6 py-2 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-widest border border-[#edd0b2] transition-colors flex items-center gap-1.5 cursor-pointer"
                           >
                             <span>Select Room</span>
                             <ArrowRight className="w-3.5 h-3.5" />

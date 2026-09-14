@@ -6,9 +6,10 @@ import { smoothScrollTo } from '../utils/scroll';
 
 interface NavbarProps {
   onOpenReserve: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [experienceExpanded, setExperienceExpanded] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
@@ -82,6 +83,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve }) => {
           </span>
         </div>
         <div className="flex items-center gap-6">
+          {onOpenAdmin && (
+            <button 
+              onClick={onOpenAdmin}
+              className="text-[#f8dec3] hover:text-white font-semibold transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Staff / Admin Portal
+            </button>
+          )}
           <span 
             onClick={() => setShowSignInModal(true)} 
             className="hover:text-white transition-colors cursor-pointer"
@@ -380,6 +390,32 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve }) => {
                       STORE
                     </a>
                   </motion.div>
+
+                  {/* STAFF / ADMIN PORTAL */}
+                  {onOpenAdmin && (
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, x: -16 },
+                        visible: { opacity: 1, x: 0 }
+                      }}
+                      transition={{ duration: 0.28, ease: "easeOut" }}
+                      className="pt-2 border-t border-stone-800"
+                    >
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          onOpenAdmin();
+                        }}
+                        className="w-full text-left text-sm font-bold tracking-[0.15em] text-[#fbe1c9] uppercase flex items-center justify-between hover:text-white transition-colors cursor-pointer py-1"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          STAFF / ADMIN PORTAL
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-stone-400" />
+                      </button>
+                    </motion.div>
+                  )}
                 </motion.nav>
 
                 {/* Lower area stays clean solid black, matching the reference screenshot */}
