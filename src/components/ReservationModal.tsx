@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, Search, Calendar, Users, MapPin, Tag, Check, ArrowRight, ShieldCheck, Sparkles, Loader2, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Search, Calendar, Users, MapPin, Tag, Check, ArrowRight, ShieldCheck, Sparkles, Loader2, Phone, UserCheck } from 'lucide-react';
 import { DESTINATIONS, ROOM_OPTIONS } from '../data/hotelData';
 import { ReservationParams, BookingRecord } from '../types';
 import { createReservationInFirebase } from '../lib/hotelDatabaseService';
+import { useAuth } from '../context/AuthContext';
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
   onAskConcierge,
   onBookingCreated
 }) => {
+  const { user, profile } = useAuth();
   const [destination, setDestination] = useState(initialParams?.destination || "Cribb Lagos Hotel");
   const [checkIn, setCheckIn] = useState(initialParams?.checkIn || "Oct 15, 2026");
   const [checkOut, setCheckOut] = useState(initialParams?.checkOut || "Oct 18, 2026");
@@ -36,6 +38,18 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
   const [guestPhone, setGuestPhone] = useState("+234 800 000 0000");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  // Auto populate guest details if user is signed in
+  useEffect(() => {
+    if (user) {
+      if (!guestName && (profile?.displayName || user.displayName)) {
+        setGuestName(profile?.displayName || user.displayName || "");
+      }
+      if (!guestEmail && user.email) {
+        setGuestEmail(user.email);
+      }
+    }
+  }, [user, profile]);
 
   if (!isOpen) return null;
 
@@ -115,9 +129,12 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
         {/* Modal Top Header */}
         <div className="bg-[#17283c] text-white px-6 py-4 flex items-center justify-between border-b border-stone-700">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#f8dec3] text-[#17283c] flex items-center justify-center font-serif font-bold text-base">
-              C
-            </div>
+            <img
+              src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+              alt="Cribb Hotel Official Logo"
+              className="w-8 h-8 object-contain rounded"
+              referrerPolicy="no-referrer"
+            />
             <div>
               <h2 className="text-lg sm:text-xl font-serif tracking-wider uppercase font-semibold">
                 Find &amp; Reserve at Cribb

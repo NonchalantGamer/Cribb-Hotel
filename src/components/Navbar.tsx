@@ -1,24 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Menu, ArrowLeft, User, ChevronRight, ChevronDown, Calendar, Globe, ShieldCheck, X } from 'lucide-react';
+import { Menu, ArrowLeft, User, ChevronRight, ChevronDown, Calendar, Globe, ShieldCheck, X, LogOut, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { smoothScrollTo } from '../utils/scroll';
+import { StaffMember } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal, AuthModalMode } from './AuthModal';
 
 interface NavbarProps {
   onOpenReserve: () => void;
   onOpenAdmin?: () => void;
+  authorizedStaff?: StaffMember | null;
+  onStaffLogout?: () => void;
+  onOpenStaffLogin?: () => void;
+  onOpenAuth?: (mode?: AuthModalMode, email?: string) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+  onOpenReserve, 
+  onOpenAdmin,
+  authorizedStaff,
+  onStaffLogout,
+  onOpenStaffLogin,
+  onOpenAuth
+}) => {
+  const { user, profile, logOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [experienceExpanded, setExperienceExpanded] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authSuccess, setAuthSuccess] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>('signin');
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Prevent background scroll when mobile menu or modal is open
+  // Close dropdown on outside click
   useEffect(() => {
-    if (mobileMenuOpen || showSignInModal) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    if (userDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [userDropdownOpen]);
+
+  // Prevent background scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -26,19 +57,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
     return () => {
       document.body.style.overflow = '';
     };
-  }, [mobileMenuOpen, showSignInModal]);
+  }, [mobileMenuOpen]);
 
   // Handle ESC key to dismiss menu or modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showSignInModal) setShowSignInModal(false);
+        if (userDropdownOpen) setUserDropdownOpen(false);
+        else if (showSignInModal) setShowSignInModal(false);
         else if (mobileMenuOpen) setMobileMenuOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mobileMenuOpen, showSignInModal]);
+  }, [mobileMenuOpen, showSignInModal, userDropdownOpen]);
 
   const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -49,15 +81,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
     }, 280);
   };
 
-  const handleSignInSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (authEmail) {
-      setAuthSuccess(true);
-      setTimeout(() => {
-        setAuthSuccess(false);
-        setShowSignInModal(false);
-        setMobileMenuOpen(false);
-      }, 1800);
+  const openAuth = (mode: AuthModalMode = 'signin') => {
+    if (onOpenAuth) {
+      onOpenAuth(mode);
+    } else {
+      setAuthModalMode(mode);
+      setShowSignInModal(true);
     }
   };
 
@@ -69,6 +98,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
     { label: "The Cribb Club", href: "#club" },
     { label: "Meetings & Events", href: "#rooms" }
   ];
+
+  const userDisplayName = profile?.displayName || user?.displayName || (user?.email ? user.email.split('@')[0] : 'Guest');
+  const userInitial = userDisplayName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200/80 transition-all">
@@ -83,28 +115,117 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
           </span>
         </div>
         <div className="flex items-center gap-6">
-          {onOpenAdmin && (
-            <button 
-              onClick={onOpenAdmin}
-              className="text-[#f8dec3] hover:text-white font-semibold transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Staff / Admin Portal
-            </button>
+          {authorizedStaff && onOpenAdmin && (
+            <div className="flex items-center gap-2.5 bg-white/10 px-2.5 py-0.5 rounded border border-[#f8dec3]/30">
+              <button 
+                onClick={onOpenAdmin}
+                className="text-[#f8dec3] hover:text-white font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+                title="Open Staff Operations Portal"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Staff Portal ({authorizedStaff.name.split(' ')[0]})
+              </button>
+              {onStaffLogout && (
+                <button
+                  onClick={onStaffLogout}
+                  className="text-[10px] text-stone-400 hover:text-white uppercase tracking-wider"
+                  title="Sign Out Staff"
+                >
+                  Exit
+                </button>
+              )}
+            </div>
           )}
-          <span 
-            onClick={() => setShowSignInModal(true)} 
-            className="hover:text-white transition-colors cursor-pointer"
-          >
-            Cribb Rewards: Join & Earn
-          </span>
-          <span className="text-stone-500">|</span>
-          <span 
-            onClick={() => setShowSignInModal(true)} 
-            className="hover:text-white transition-colors cursor-pointer"
-          >
-            Sign In
-          </span>
+
+          {/* User Account State */}
+          {user ? (
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)} 
+                className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer text-stone-200 group"
+              >
+                <div className="w-5 h-5 rounded-full bg-[#f8dec3] text-[#17283c] flex items-center justify-center font-bold text-[10px] uppercase">
+                  {userInitial}
+                </div>
+                <span className="font-semibold text-[#f8dec3] max-w-[130px] truncate">
+                  {userDisplayName}
+                </span>
+                <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-stone-300">
+                  {profile?.tier || 'Member'} • {(profile?.rewardPoints ?? 2500).toLocaleString()} pts
+                </span>
+                <ChevronDown className="w-3 h-3 text-stone-400 group-hover:text-white transition-transform" />
+              </button>
+
+              {/* Guest Account Dropdown Popover */}
+              {userDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-[#17283c] border border-stone-700 shadow-2xl p-4 text-white z-50 animate-in fade-in zoom-in-95 duration-150 normal-case tracking-normal rounded-sm">
+                  <div className="pb-3 border-b border-stone-700">
+                    <div className="text-xs font-bold text-white truncate">
+                      {userDisplayName}
+                    </div>
+                    <div className="text-[11px] text-stone-400 truncate">{user.email}</div>
+                    <div className="mt-2 text-[10px] font-mono text-[#f8dec3] bg-black/30 px-2 py-1 rounded flex items-center justify-between">
+                      <span>MEMBERSHIP ID:</span>
+                      <span className="font-bold">{profile?.membershipNumber || 'CRB-849201'}</span>
+                    </div>
+                  </div>
+
+                  <div className="py-2.5 space-y-1">
+                    <div className="flex items-center justify-between text-xs py-1 text-stone-300">
+                      <span className="flex items-center gap-1.5">
+                        <Award className="w-3.5 h-3.5 text-[#f8dec3]" />
+                        Status Tier
+                      </span>
+                      <span className="font-bold text-[#f8dec3]">{profile?.tier || 'Member'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs py-1 text-stone-300">
+                      <span>Rewards Balance</span>
+                      <span className="font-bold text-white font-mono">{(profile?.rewardPoints ?? 2500).toLocaleString()} pts</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2.5 border-t border-stone-700 space-y-2">
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onOpenReserve();
+                      }}
+                      className="w-full py-2 px-3 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-wider text-center cursor-pointer transition-colors block"
+                    >
+                      Make a Reservation
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setUserDropdownOpen(false);
+                        await logOut();
+                      }}
+                      className="w-full py-1.5 text-[11px] text-stone-400 hover:text-red-300 uppercase tracking-wider text-center cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <LogOut className="w-3 h-3" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <button 
+                onClick={() => openAuth('signup')} 
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                Cribb Rewards: Join &amp; Earn
+              </button>
+              <span className="text-stone-500">|</span>
+              <button 
+                onClick={() => openAuth('signin')} 
+                className="hover:text-white transition-colors cursor-pointer font-bold text-[#f8dec3]"
+              >
+                Sign In
+              </button>
+            </>
+          )}
+
           <span className="text-stone-500">|</span>
           <span className="text-[#f8dec3]">EN / USD ($)</span>
         </div>
@@ -127,13 +248,21 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
 
           {/* Brand Logo / Wordmark */}
           <div className="flex items-center">
-            <a href="#" className="flex flex-col items-center group text-center">
-              <span className="text-2xl sm:text-3xl font-serif tracking-[0.25em] font-bold text-[#17283c] uppercase leading-none group-hover:text-[#0f1c2d]">
-                CRIBB
-              </span>
-              <span className="text-[9px] sm:text-[10px] tracking-[0.3em] text-[#54657a] uppercase mt-1 font-medium">
-                Hotels &amp; Resorts
-              </span>
+            <a href="#" className="flex items-center gap-2.5 sm:gap-3.5 group text-left">
+              <img
+                src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                alt="Cribb Hotel Official Logo"
+                className="w-10 h-10 sm:w-11 sm:h-11 object-contain group-hover:scale-105 transition-transform duration-200"
+                referrerPolicy="no-referrer"
+              />
+              <div className="flex flex-col">
+                <span className="text-xl sm:text-2xl font-serif tracking-[0.22em] font-bold text-[#17283c] uppercase leading-none group-hover:text-[#0f1c2d]">
+                  CRIBB
+                </span>
+                <span className="text-[9px] sm:text-[10px] tracking-[0.3em] text-[#54657a] uppercase mt-1 font-medium">
+                  Hotels &amp; Resorts
+                </span>
+              </div>
             </a>
           </div>
 
@@ -152,10 +281,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
 
           {/* Reserve CTA */}
           <div className="flex items-center gap-3">
+            {!user && (
+              <button
+                onClick={() => openAuth('signin')}
+                className="hidden sm:flex lg:hidden items-center gap-1.5 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#17283c] border border-stone-300 hover:bg-stone-100 transition-colors cursor-pointer"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </button>
+            )}
             <button
               onClick={onOpenReserve}
               id="header-reserve-button"
-              className="px-4 sm:px-6 py-2.5 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] font-semibold text-xs sm:text-sm tracking-wider uppercase shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 border border-[#edd0b2]"
+              className="px-4 sm:px-6 py-2.5 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] font-semibold text-xs sm:text-sm tracking-wider uppercase shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 border border-[#edd0b2] cursor-pointer"
             >
               <Calendar className="w-4 h-4 hidden sm:inline-block" />
               <span>Reserve Now</span>
@@ -214,32 +352,59 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
 
                   {/* Brand Logo & Circular Emblem (Center) */}
                   <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 relative flex items-center justify-center mb-0.5">
-                      <svg viewBox="0 0 40 40" className="w-full h-full text-white" fill="none" stroke="currentColor">
-                        <circle cx="20" cy="20" r="17" strokeWidth="1.2" strokeDasharray="3 2" className="opacity-40" />
-                        <path d="M12 28 C9 24 9 16 13 11 C15 9 18 8 20 8 M28 28 C31 24 31 16 27 11 C25 9 22 8 20 8" strokeWidth="1.5" strokeLinecap="round"/>
-                        <path d="M11 16 C9 15 8 13 9 11 C11 11 13 13 13 15 M29 16 C31 15 32 13 31 11 C29 11 27 13 27 15" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M10 22 C8 21 7 19 8 18 C10 18 11 20 11 21 M30 22 C32 21 33 19 32 18 C30 18 29 20 29 21" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M13 27 C11 27 10 25 11 24 C13 24 14 25 14 26 M27 27 C29 27 30 25 29 24 C27 24 26 25 26 26" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <span className="absolute font-serif font-bold text-[13px] text-white leading-none">C</span>
+                    <div className="w-10 h-10 relative flex items-center justify-center mb-1">
+                      <img
+                        src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                        alt="Cribb Hotel Official Logo"
+                        className="w-full h-full object-contain drop-shadow-md"
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
                     <span className="text-xs sm:text-sm font-sans font-bold tracking-[0.3em] text-white uppercase">
                       CRIBB
                     </span>
                   </div>
 
-                  {/* User Account Link (Right): Icon + "SIGN IN OR JOIN" */}
-                  <button
-                    onClick={() => setShowSignInModal(true)}
-                    id="mobile-nav-signin-button"
-                    className="flex items-center gap-1.5 text-white hover:text-[#fbe1c9] transition-colors py-2 px-1 focus:outline-none cursor-pointer"
-                  >
-                    <User className="w-4 h-4 text-white" />
-                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider font-sans whitespace-nowrap">
-                      SIGN IN OR JOIN
-                    </span>
-                  </button>
+                  {/* User Account Link (Right): Icon + Status or Sign In */}
+                  {user ? (
+                    <div className="flex items-center gap-2 py-1 px-1">
+                      <div className="w-8 h-8 rounded-full bg-[#f8dec3] text-[#17283c] flex items-center justify-center font-bold text-xs uppercase shadow">
+                        {userInitial}
+                      </div>
+                      <div className="text-left leading-tight hidden xs:block">
+                        <div className="text-xs font-bold text-white truncate max-w-[100px]">
+                          {userDisplayName}
+                        </div>
+                        <div className="text-[10px] text-[#fbe1c9]">
+                          {(profile?.rewardPoints ?? 2500).toLocaleString()} pts
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          logOut();
+                        }}
+                        className="text-[10px] text-stone-400 hover:text-white uppercase tracking-wider px-2 py-1 bg-white/10 rounded cursor-pointer"
+                        title="Sign Out"
+                      >
+                        Exit
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        openAuth('signin');
+                      }}
+                      id="mobile-nav-signin-button"
+                      className="flex items-center gap-1.5 text-white hover:text-[#fbe1c9] transition-colors py-2 px-1 focus:outline-none cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-white" />
+                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider font-sans whitespace-nowrap">
+                        SIGN IN OR JOIN
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Full-width Call-To-Action "RESERVE NOW" Button with soft peach color and flat 90-degree corners */}
@@ -391,8 +556,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
                     </a>
                   </motion.div>
 
-                  {/* STAFF / ADMIN PORTAL */}
-                  {onOpenAdmin && (
+                  {/* STAFF / ADMIN PORTAL - ONLY visible if authorizedStaff is logged in */}
+                  {authorizedStaff && onOpenAdmin && (
                     <motion.div
                       variants={{
                         hidden: { opacity: 0, x: -16 },
@@ -401,19 +566,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
                       transition={{ duration: 0.28, ease: "easeOut" }}
                       className="pt-2 border-t border-stone-800"
                     >
-                      <button
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          onOpenAdmin();
-                        }}
-                        className="w-full text-left text-sm font-bold tracking-[0.15em] text-[#fbe1c9] uppercase flex items-center justify-between hover:text-white transition-colors cursor-pointer py-1"
-                      >
-                        <span className="flex items-center gap-2">
+                      <div className="flex items-center justify-between py-1">
+                        <button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            onOpenAdmin();
+                          }}
+                          className="text-left text-sm font-bold tracking-[0.15em] text-[#fbe1c9] uppercase flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
+                        >
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                          STAFF / ADMIN PORTAL
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-stone-400" />
-                      </button>
+                          STAFF PORTAL ({authorizedStaff.name.split(' ')[0]})
+                        </button>
+                        {onStaffLogout && (
+                          <button
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              onStaffLogout();
+                            }}
+                            className="text-[10px] text-stone-400 hover:text-white uppercase tracking-wider px-2 py-1 bg-white/10 rounded"
+                          >
+                            Exit
+                          </button>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </motion.nav>
@@ -428,63 +603,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReserve, onOpenAdmin }) =>
       )}
 
       {/* Sign In / Join Rewards Modal */}
-      {showSignInModal && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#17283c] border border-stone-700 text-white w-full max-w-md p-6 sm:p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setShowSignInModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-white"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center mb-6">
-              <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#f8dec3] block mb-1">
-                CRIBB REWARDS
-              </span>
-              <h3 className="text-2xl font-serif font-bold text-white">Sign In or Join</h3>
-              <p className="text-xs text-stone-300 mt-2">
-                Access member exclusive rates, digital key check-in, and complimentary suite upgrades.
-              </p>
-            </div>
-
-            {authSuccess ? (
-              <div className="p-4 bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-xs text-center rounded-sm">
-                ✓ Success! Welcome back to Cribb Rewards. Redirecting...
-              </div>
-            ) : (
-              <form onSubmit={handleSignInSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-300 mb-1">
-                    Email or Membership Number
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="guest@example.com"
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="w-full h-11 px-3 bg-white/10 border border-stone-600 focus:border-[#f8dec3] text-sm text-white focus:outline-none placeholder:text-stone-500"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] font-bold text-xs uppercase tracking-widest transition-colors"
-                >
-                  Continue to Cribb Account
-                </button>
-
-                <p className="text-[10px] text-stone-400 text-center">
-                  By continuing, you agree to the Cribb Hotels Terms of Service and Rewards Membership Policy.
-                </p>
-              </form>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      <AuthModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+        initialMode={authModalMode}
+        onOpenStaffPortal={onOpenStaffLogin}
+      />
     </header>
   );
 };

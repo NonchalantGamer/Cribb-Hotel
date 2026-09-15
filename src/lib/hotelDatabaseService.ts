@@ -11,7 +11,46 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { BookingRecord, HotelRoomInventory, HotelServiceRequest, BookingStatus, RoomCleanStatus } from '../types';
+import { BookingRecord, HotelRoomInventory, HotelServiceRequest, BookingStatus, RoomCleanStatus, StaffMember } from '../types';
+
+export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
+  {
+    id: 'staff-1',
+    email: 'joshuaegesienyinnaya@gmail.com',
+    name: 'Joshua Egesienyinnaya',
+    role: 'General Manager',
+    staffPasscode: '2026',
+    active: true,
+    department: 'Executive Administration'
+  },
+  {
+    id: 'staff-2',
+    email: 'admin@cribbhotel.com',
+    name: 'Helena Vance',
+    role: 'Front Desk Supervisor',
+    staffPasscode: '1234',
+    active: true,
+    department: 'Front Office & Folios'
+  },
+  {
+    id: 'staff-3',
+    email: 'concierge@cribbhotel.com',
+    name: 'Tariq Al-Mansoor',
+    role: 'Concierge Manager',
+    staffPasscode: '7788',
+    active: true,
+    department: 'Guest Relations & VIP'
+  },
+  {
+    id: 'staff-4',
+    email: 'housekeeping@cribbhotel.com',
+    name: 'Grace Adewale',
+    role: 'Housekeeping Director',
+    staffPasscode: '4455',
+    active: true,
+    department: 'Housekeeping & Maintenance'
+  }
+];
 
 // Seed rooms data if collection is empty
 export const INITIAL_HOTEL_ROOMS: HotelRoomInventory[] = [
@@ -308,6 +347,15 @@ export async function bootstrapHotelDatabase() {
         await setDoc(doc(db, 'service_requests', srv.id), srv);
       }
     }
+
+    // Check staff members
+    const staffSnap = await getDocs(collection(db, 'staff'));
+    if (staffSnap.empty) {
+      console.log('Seeding staff directory into Firestore...');
+      for (const member of INITIAL_STAFF_MEMBERS) {
+        await setDoc(doc(db, 'staff', member.id), member);
+      }
+    }
   } catch (err) {
     console.warn('Firestore database bootstrap encountered an issue:', err);
   }
@@ -419,4 +467,75 @@ export async function addServiceRequest(request: Omit<HotelServiceRequest, 'id' 
     console.error('Failed to add service request:', err);
   }
   return newReq;
+}
+
+/**
+ * Verify staff credentials against Firestore staff directory or fallback staff
+ */
+export async function verifyStaffAccess(identifier: string, passcode: string): Promise<StaffMember | null> {
+  const cleanId = identifier.trim().toLowerCase();
+  const cleanPass = passcode.trim();
+
+  try {
+    const snap = await getDocs(collection(db, 'staff'));
+    if (!snap.empty) {
+      for (const docSnap of snap.docs) {
+        const staff = docSnap.data() as StaffMember;
+        if (
+          staff.active &&
+          (staff.email.toLowerCase() === cleanId || staff.name.toLowerCase() === cleanId) &&
+          staff.staffPasscode === cleanPass
+        ) {
+          return staff;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Could not read staff from Firestore, checking initial directory:', err);
+  }
+
+  // Fallback to local INITIAL_STAFF_MEMBERS for robust offline/fallback resilience
+  const fallback = INITIAL_STAFF_MEMBERS.find(
+    s => (s.email.toLowerCase() === cleanId || s.name.toLowerCase() === cleanId) && s.staffPasscode === cleanPass
+  );
+
+  return fallback || null;
+}
+
+/**
+ * Verify staff by email directly (e.g. from Google Firebase Auth)
+ */
+export async function verifyStaffByEmail(email: string): Promise<StaffMember | null> {
+  const cleanEmail = email.trim().toLowerCase();
+  try {
+    const snap = await getDocs(collection(db, 'staff'));
+    if (!snap.empty) {
+      for (const docSnap of snap.docs) {
+        const staff = docSnap.data() as StaffMember;
+        if (staff.active && staff.email.toLowerCase() === cleanEmail) {
+          return staff;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Could not read staff from Firestore, checking fallback:', err);
+  }
+
+  const fallback = INITIAL_STAFF_MEMBERS.find(
+    s => s.active && s.email.toLowerCase() === cleanEmail
+  );
+  return fallback || null;
+}
+
+/**
+ * Check if an email is registered as hotel staff
+ */
+export function isStaffEmail(email: string): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return (
+    clean === 'joshuaegesienyinnaya@gmail.com' ||
+    INITIAL_STAFF_MEMBERS.some(s => s.email.toLowerCase() === clean) ||
+    clean.endsWith('@cribbhotel.com')
+  );
 }

@@ -268,8 +268,13 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
             className="flex items-center gap-3 px-5 py-3.5 bg-[#17283c] hover:bg-[#0f1c2d] text-white rounded-full shadow-[0px_8px_25px_rgba(23,40,60,0.35)] border border-[#f8dec3]/50 transition-all duration-300 hover:scale-105 active:scale-95 group"
             aria-label="Open Cribb AI Concierge"
           >
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#f8dec3] text-[#17283c]">
-              <Sparkles className="w-4 h-4 text-[#17283c]" />
+            <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-white/10 p-0.5">
+              <img
+                src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                alt="Cribb Hotel Logo"
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#17283c] animate-pulse" />
             </div>
             <div className="text-left hidden sm:block">
@@ -289,9 +294,12 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
           {/* Console Header */}
           <div className="bg-[#17283c] text-white px-4 py-3 flex items-center justify-between border-b border-stone-700">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#f8dec3] text-[#17283c] flex items-center justify-center font-serif font-bold text-sm shadow-inner">
-                C
-              </div>
+              <img
+                src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                alt="Cribb Hotel Logo"
+                className="w-8 h-8 object-contain rounded"
+                referrerPolicy="no-referrer"
+              />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-sm font-serif font-bold tracking-wide">Cribb AI Concierge</h3>
@@ -344,9 +352,12 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
                 className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'model' && (
-                  <div className="w-6 h-6 rounded-full bg-[#17283c] text-[#f8dec3] flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5 shadow-xs">
-                    C
-                  </div>
+                  <img
+                    src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                    alt="Cribb Concierge"
+                    className="w-6 h-6 object-contain rounded-full flex-shrink-0 mt-0.5 border border-stone-200 shadow-xs"
+                    referrerPolicy="no-referrer"
+                  />
                 )}
 
                 <div className={`max-w-[85%] ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>

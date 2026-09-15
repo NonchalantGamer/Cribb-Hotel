@@ -17,31 +17,53 @@ import {
   AlertCircle,
   PlusCircle,
   X,
-  Send
+  Send,
+  Lock,
+  ShieldCheck,
+  LogOut,
+  User,
+  Users
 } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { db, auth } from '../lib/firebase';
 import { 
   BookingRecord, 
   HotelRoomInventory, 
   HotelServiceRequest, 
   BookingStatus, 
-  RoomCleanStatus 
+  RoomCleanStatus,
+  StaffMember
 } from '../types';
 import { 
   bootstrapHotelDatabase, 
   updateReservationStatus, 
   updateRoomStatus, 
-  addServiceRequest 
+  addServiceRequest,
+  verifyStaffAccess,
+  verifyStaffByEmail,
+  INITIAL_STAFF_MEMBERS
 } from '../lib/hotelDatabaseService';
 
 interface AdminPortalProps {
   isOpen: boolean;
   onClose: () => void;
+  authorizedStaff: StaffMember | null;
+  onStaffChange: (staff: StaffMember | null) => void;
 }
 
-export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'reservations' | 'rooms' | 'requests' | 'overview'>('overview');
+export const AdminPortal: React.FC<AdminPortalProps> = ({ 
+  isOpen, 
+  onClose,
+  authorizedStaff,
+  onStaffChange
+}) => {
+  const [staffIdentifier, setStaffIdentifier] = useState('joshuaegesienyinnaya@gmail.com');
+  const [staffPasscode, setStaffPasscode] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [verifyingStaff, setVerifyingStaff] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<'reservations' | 'rooms' | 'requests' | 'overview'>('reservations');
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [rooms, setRooms] = useState<HotelRoomInventory[]>([]);
   const [serviceRequests, setServiceRequests] = useState<HotelServiceRequest[]>([]);
@@ -121,13 +143,72 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
 
   if (!isOpen) return null;
 
-  // Filtered reservations
+  // Handle Staff Login with Credentials
+  const handleStaffLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setVerifyingStaff(true);
+
+    try {
+      const staff = await verifyStaffAccess(staffIdentifier, staffPasscode);
+      if (staff) {
+        onStaffChange(staff);
+      } else {
+        setAuthError('Access Denied. Official staff identifier or security passcode is invalid.');
+      }
+    } catch (err) {
+      setAuthError('Verification service error. Please try again.');
+    } finally {
+      setVerifyingStaff(false);
+    }
+  };
+
+  // Handle Staff Login with Google Account (Firebase Auth)
+  const handleGoogleStaffLogin = async () => {
+    setAuthError('');
+    setVerifyingStaff(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const email = result.user?.email;
+      if (email) {
+        const staff = await verifyStaffByEmail(email);
+        if (staff) {
+          onStaffChange(staff);
+        } else {
+          setAuthError(`Access Denied: Google Account "${email}" is not registered in the authorized hotel team directory.`);
+        }
+      }
+    } catch (err: any) {
+      if (err?.code !== 'auth/popup-closed-by-user') {
+        setAuthError('Google authentication error. Please try using staff email & security passcode.');
+      }
+    } finally {
+      setVerifyingStaff(false);
+    }
+  };
+
+  const handleStaffLogout = () => {
+    onStaffChange(null);
+  };
+
+  const handleQuickStaffSelect = (member: StaffMember) => {
+    setStaffIdentifier(member.email);
+    setStaffPasscode('');
+    setAuthError('');
+  };
+
+  // Filtered reservations (search bar finds by guest name, confirmation ID, email, phone, or room)
   const filteredBookings = bookings.filter((b) => {
-    const matchesSearch = 
-      b.guestName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.confirmationId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.roomTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.roomNumber?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch = !q || (
+      (b.guestName && b.guestName.toLowerCase().includes(q)) ||
+      (b.confirmationId && b.confirmationId.toLowerCase().includes(q)) ||
+      (b.guestEmail && b.guestEmail.toLowerCase().includes(q)) ||
+      (b.guestPhone && b.guestPhone.toLowerCase().includes(q)) ||
+      (b.roomTitle && b.roomTitle.toLowerCase().includes(q)) ||
+      (b.roomNumber && b.roomNumber.toLowerCase().includes(q))
+    );
     
     const matchesStatus = statusFilter === 'All' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -184,9 +265,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
         {/* Top Operational Header */}
         <div className="bg-[#17283c] text-white px-6 py-4 flex items-center justify-between border-b border-stone-700">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-md bg-[#f8dec3] text-[#17283c] flex items-center justify-center font-serif font-bold text-lg">
-              C
-            </div>
+            <img
+              src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+              alt="Cribb Hotel Official Logo"
+              className="w-10 h-10 object-contain rounded"
+              referrerPolicy="no-referrer"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-serif font-bold tracking-wide uppercase">
@@ -196,83 +280,272 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
                   Firestore Live Sync
                 </span>
+                {authorizedStaff && (
+                  <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-950 text-blue-200 border border-blue-800">
+                    <ShieldCheck className="w-3 h-3 text-blue-400" />
+                    Authorized Staff
+                  </span>
+                )}
               </div>
               <p className="text-xs text-stone-300">
-                Centralized reservations, front-desk folios, and housekeeping telemetry
+                Restricted operational system for permitted hotel personnel only
               </p>
             </div>
           </div>
           
-          <button
-            onClick={onClose}
-            className="p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
-            aria-label="Close portal"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Tab Navigation & Status Ribbon */}
-        <div className="bg-white border-b border-stone-200 px-6 flex items-center justify-between overflow-x-auto">
-          <div className="flex gap-6 text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2">
+            {authorizedStaff && (
+              <button
+                onClick={handleStaffLogout}
+                title="Lock / Sign Out Staff Portal"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs text-stone-300 hover:text-white bg-white/10 hover:bg-white/20 rounded transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out ({authorizedStaff.name.split(' ')[0]})</span>
+              </button>
+            )}
             <button
-              onClick={() => setActiveTab('overview')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'overview'
-                  ? 'border-[#17283c] text-[#17283c]'
-                  : 'border-transparent text-stone-500 hover:text-stone-800'
-              }`}
+              onClick={onClose}
+              className="p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+              aria-label="Close portal"
             >
-              <Building className="w-4 h-4" /> Overview &amp; KPIs
-            </button>
-            <button
-              onClick={() => setActiveTab('reservations')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'reservations'
-                  ? 'border-[#17283c] text-[#17283c]'
-                  : 'border-transparent text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <Calendar className="w-4 h-4" /> 
-              Reservations 
-              <span className="ml-1 px-1.5 py-0.2 bg-stone-200 text-stone-800 rounded-full text-[10px]">
-                {bookings.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('rooms')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'rooms'
-                  ? 'border-[#17283c] text-[#17283c]'
-                  : 'border-transparent text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <BedDouble className="w-4 h-4" /> 
-              Room Inventory 
-              <span className="ml-1 px-1.5 py-0.2 bg-stone-200 text-stone-800 rounded-full text-[10px]">
-                {rooms.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('requests')}
-              className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'requests'
-                  ? 'border-[#17283c] text-[#17283c]'
-                  : 'border-transparent text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" /> 
-              Guest Requests 
-              <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-900 rounded-full text-[10px]">
-                {serviceRequests.length}
-              </span>
+              <X className="w-6 h-6" />
             </button>
           </div>
-
-          <div className="hidden lg:flex items-center gap-2 text-xs text-stone-500">
-            <span>Property: <strong>Cribb Lagos Hotel (Flagship)</strong></span>
-          </div>
         </div>
+
+        {/* ACCESS GATE: Render staff login gate if not authorized */}
+        {!authorizedStaff ? (
+          <div className="p-6 sm:p-12 max-w-xl mx-auto my-auto w-full">
+            <div className="bg-white border border-stone-300 p-6 sm:p-8 shadow-md">
+              <div className="flex justify-center mb-3">
+                <img
+                  src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                  alt="Cribb Hotel Official Logo"
+                  className="w-14 h-14 object-contain drop-shadow-sm"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-serif font-bold text-[#17283c]">
+                  Permitted Staff Verification
+                </h3>
+                <p className="text-xs text-stone-500 mt-1.5">
+                  This portal contains confidential guest folios, reservation records, and room inventories. Please sign in with your staff credentials.
+                </p>
+              </div>
+
+              {authError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 rounded">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={handleGoogleStaffLogin}
+                  disabled={verifyingStaff}
+                  className="w-full py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center gap-2 border border-stone-300 disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Sign In with Verified Google Staff Account</span>
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-stone-200" />
+                  <span className="text-[10px] uppercase tracking-widest text-stone-400 font-mono">
+                    or enter staff credentials
+                  </span>
+                  <div className="flex-1 h-px bg-stone-200" />
+                </div>
+
+                <form onSubmit={handleStaffLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-stone-600 mb-1">
+                      Staff Email or Official Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffIdentifier}
+                      onChange={(e) => setStaffIdentifier(e.target.value)}
+                      placeholder="e.g. joshuaegesienyinnaya@gmail.com"
+                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 focus:outline-none focus:border-[#17283c]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-stone-600 mb-1">
+                      Staff Security Passcode / PIN
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={staffPasscode}
+                      onChange={(e) => setStaffPasscode(e.target.value)}
+                      placeholder="Enter assigned security passcode..."
+                      className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-300 focus:outline-none focus:border-[#17283c]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={verifyingStaff}
+                    className="w-full py-2.5 bg-[#17283c] hover:bg-[#0f1c2d] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    {verifyingStaff ? 'Authenticating Staff...' : 'Access Staff Portal'}
+                  </button>
+                </form>
+
+                {/* Permitted Staff Directory (Names only, no exposed PINs) */}
+                <div className="mt-6 pt-5 border-t border-stone-200">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                      Permitted Staff Roles:
+                    </span>
+                    <span className="text-[10px] text-stone-400">Select profile to pre-fill</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {INITIAL_STAFF_MEMBERS.map((member) => (
+                      <button
+                        key={member.id}
+                        type="button"
+                        onClick={() => handleQuickStaffSelect(member)}
+                        className="p-2 text-left bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded transition-colors text-xs cursor-pointer group"
+                      >
+                        <div className="font-semibold text-stone-800 group-hover:text-[#17283c]">
+                          {member.name}
+                        </div>
+                        <div className="text-[10px] text-stone-500">{member.role}</div>
+                        <div className="text-[10px] text-stone-400 font-mono mt-0.5">
+                          {member.department}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Top Global Search & Active Staff Banner */}
+            <div className="bg-[#101b29] text-stone-200 px-6 py-2.5 border-b border-stone-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+              {/* Universal Search Bar */}
+              <div className="relative w-full sm:w-96">
+                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Quick find guest by name or confirmation ID (e.g. CRB-834921)..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (activeTab !== 'reservations') {
+                      setActiveTab('reservations');
+                    }
+                  }}
+                  className="w-full pl-9 pr-8 py-1.5 text-xs bg-stone-900 border border-stone-600 text-white placeholder-stone-400 focus:outline-none focus:border-[#f8dec3]"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-2 text-stone-400 hover:text-white"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Active Staff Identity Badge */}
+              <div className="flex items-center gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-[#f8dec3] text-[#17283c] flex items-center justify-center font-bold text-xs">
+                    {authorizedStaff.name.charAt(0)}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-white block leading-tight">{authorizedStaff.name}</span>
+                    <span className="text-[10px] text-stone-400">{authorizedStaff.role} • {authorizedStaff.department}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleStaffLogout}
+                  className="text-[11px] text-amber-300 hover:text-white underline cursor-pointer ml-2"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Navigation & Status Ribbon */}
+            <div className="bg-white border-b border-stone-200 px-6 flex items-center justify-between overflow-x-auto">
+              <div className="flex gap-6 text-xs font-bold uppercase tracking-wider">
+                <button
+                  onClick={() => setActiveTab('reservations')}
+                  className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'reservations'
+                      ? 'border-[#17283c] text-[#17283c]'
+                      : 'border-transparent text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4" /> 
+                  Reservations 
+                  <span className="ml-1 px-1.5 py-0.2 bg-stone-200 text-stone-800 rounded-full text-[10px]">
+                    {searchQuery ? `${filteredBookings.length} match` : bookings.length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('rooms')}
+                  className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'rooms'
+                      ? 'border-[#17283c] text-[#17283c]'
+                      : 'border-transparent text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  <BedDouble className="w-4 h-4" /> 
+                  Room Inventory 
+                  <span className="ml-1 px-1.5 py-0.2 bg-stone-200 text-stone-800 rounded-full text-[10px]">
+                    {rooms.length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'overview'
+                      ? 'border-[#17283c] text-[#17283c]'
+                      : 'border-transparent text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  <Building className="w-4 h-4" /> Overview &amp; KPIs
+                </button>
+                <button
+                  onClick={() => setActiveTab('requests')}
+                  className={`py-3.5 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'requests'
+                      ? 'border-[#17283c] text-[#17283c]'
+                      : 'border-transparent text-stone-500 hover:text-stone-800'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" /> 
+                  Guest Requests 
+                  <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-900 rounded-full text-[10px]">
+                    {serviceRequests.length}
+                  </span>
+                </button>
+              </div>
+
+              <div className="hidden lg:flex items-center gap-2 text-xs text-stone-500">
+                <span>Property: <strong>Cribb Lagos Hotel (Flagship)</strong></span>
+              </div>
+            </div>
 
         {/* Modal Scrollable Workspace */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -738,6 +1011,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

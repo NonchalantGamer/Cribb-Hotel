@@ -1,13 +1,15 @@
 import React from 'react';
 import { Mail, Globe, Phone, MapPin, ShieldCheck, ArrowUp } from 'lucide-react';
 import { DESTINATIONS } from '../data/hotelData';
+import { StaffMember } from '../types';
 
 interface FooterProps {
   onOpenReserve: () => void;
   onOpenAdmin?: () => void;
+  authorizedStaff?: StaffMember | null;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenReserve, onOpenAdmin }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenReserve, onOpenAdmin, authorizedStaff }) => {
   return (
     <footer className="bg-[#0f1c2d] text-stone-300 pt-16 pb-12 border-t border-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,13 +17,21 @@ export const Footer: React.FC<FooterProps> = ({ onOpenReserve, onOpenAdmin }) =>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-stone-800">
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex flex-col">
-              <span className="text-3xl font-serif tracking-[0.25em] font-bold text-white uppercase">
-                CRIBB
-              </span>
-              <span className="text-xs tracking-[0.3em] text-[#f8dec3] uppercase mt-0.5">
-                Hotels &amp; Resorts
-              </span>
+            <div className="flex items-center gap-3.5">
+              <img
+                src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
+                alt="Cribb Hotel Official Logo"
+                className="w-12 h-12 object-contain"
+                referrerPolicy="no-referrer"
+              />
+              <div className="flex flex-col">
+                <span className="text-2xl sm:text-3xl font-serif tracking-[0.25em] font-bold text-white uppercase leading-none">
+                  CRIBB
+                </span>
+                <span className="text-xs tracking-[0.3em] text-[#f8dec3] uppercase mt-1 font-medium">
+                  Hotels &amp; Resorts
+                </span>
+              </div>
             </div>
             <p className="text-xs sm:text-sm text-stone-400 leading-relaxed max-w-sm">
               The World’s Gathering Place. Where intuitive architecture, elevated culinary artistry, and authentic human connection create timeless experiences across six continents.
@@ -94,14 +104,14 @@ export const Footer: React.FC<FooterProps> = ({ onOpenReserve, onOpenAdmin }) =>
                   Digital Key &amp; Mobile Check-In
                 </span>
               </li>
-              {onOpenAdmin && (
+              {authorizedStaff && onOpenAdmin && (
                 <li className="pt-1">
                   <button
                     onClick={onOpenAdmin}
                     className="text-[#f8dec3] hover:text-white transition-colors cursor-pointer font-semibold flex items-center gap-1.5"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Staff &amp; Admin Portal
+                    Staff Portal ({authorizedStaff.name.split(' ')[0]})
                   </button>
                 </li>
               )}

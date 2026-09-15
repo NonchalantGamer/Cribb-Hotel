@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "staff": {
+      "title": "Hotel Staff",
+      "description": "Authorized hotel staff and front-desk administrators with elevated portal access.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["General Manager", "Front Desk Supervisor", "Concierge Manager", "Housekeeping Director", "Auditor"] },
+        "active": { "type": "boolean" },
+        "hotelAccess": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["email", "name", "role", "active"]
+    },
+    "reservations": {
+      "title": "Hotel Reservation Folio",
+      "description": "Guest bookings and room reservation folios.",
+      "type": "object",
+      "properties": {
+        "confirmationId": { "type": "string", "maxLength": 30 },
+        "guestName": { "type": "string", "maxLength": 100 },
+        "guestEmail": { "type": "string", "format": "email" },
+        "guestPhone": { "type": "string", "maxLength": 30 },
+        "roomTitle": { "type": "string", "maxLength": 120 },
+        "roomNumber": { "type": "string", "maxLength": 20 },
+        "checkIn": { "type": "string", "maxLength": 30 },
+        "checkOut": { "type": "string", "maxLength": 30 },
+        "status": { "type": "string", "enum": ["Confirmed", "Checked In", "Checked Out", "Cancelled"] },
+        "totalAmount": { "type": "number" }
+      },
+      "required": ["confirmationId", "guestName", "status", "checkIn", "checkOut"]
+    },
+    "rooms": {
+      "title": "Hotel Room Inventory",
+      "description": "Rooms, wings, housekeeping readiness, and occupancy status.",
+      "type": "object",
+      "properties": {
+        "roomNumber": { "type": "string", "maxLength": 20 },
+        "wing": { "type": "string", "maxLength": 100 },
+        "roomTitle": { "type": "string", "maxLength": 120 },
+        "isOccupied": { "type": "boolean" },
+        "cleanStatus": { "type": "string", "enum": ["Clean & Inspected", "Dirty / In Progress", "Turn-down Required", "Maintenance Required"] },
+        "ratePerNight": { "type": "number" }
+      },
+      "required": ["roomNumber", "isOccupied", "cleanStatus", "ratePerNight"]
+    },
+    "service_requests": {
+      "title": "Guest Service Request",
+      "description": "Real-time dispatch requests for housekeeping, dining, and concierge.",
+      "type": "object",
+      "properties": {
+        "roomNumber": { "type": "string", "maxLength": 20 },
+        "guestName": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "enum": ["Housekeeping", "Room Service", "Maintenance", "Concierge", "Luggage Transfer"] },
+        "request": { "type": "string", "maxLength": 500 },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Urgent"] },
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Completed"] }
+      },
+      "required": ["roomNumber", "guestName", "category", "request", "status"]
+    },
+    "users": {
+      "title": "Guest User Profile",
+      "description": "Authenticated hotel guest profiles and loyalty rewards accounts.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "membershipNumber": { "type": "string" },
+        "tier": { "type": "string", "enum": ["Member", "Silver", "Gold", "Diamond"] },
+        "rewardPoints": { "type": "number" },
+        "memberSince": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/users" },
+      "description": "Guest profiles and Cribb rewards accounts."
+    },
+    "/staff/{staffId}": {
+      "schema": { "$ref": "#/entities/staff" },
+      "description": "Collection of permitted hotel staff members."
+    },
+    "/reservations/{reservationId}": {
+      "schema": { "$ref": "#/entities/reservations" },
+      "description": "Guest room reservations and folios."
+    },
+    "/rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/rooms" },
+      "description": "Hotel room inventory, occupancy, and housekeeping."
+    },
+    "/service_requests/{requestId}": {
+      "schema": { "$ref": "#/entities/service_requests" },
+      "description": "Guest service and maintenance tickets."
+    }
+  }
+}

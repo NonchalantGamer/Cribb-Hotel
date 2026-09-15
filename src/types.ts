@@ -99,3 +99,24 @@ export interface HotelServiceRequest {
   status: 'Open' | 'In Progress' | 'Completed';
   createdAt: string;
 }
+
+export interface StaffMember {
+  id: string;
+  email: string;
+  name: string;
+  role: 'General Manager' | 'Front Desk Supervisor' | 'Concierge Manager' | 'Housekeeping Director' | 'Night Auditor';
+  staffPasscode: string;
+  active: boolean;
+  department: string;
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL?: string | null;
+  membershipNumber: string;
+  tier: 'Member' | 'Silver' | 'Gold' | 'Diamond';
+  rewardPoints: number;
+  memberSince: string;
+}

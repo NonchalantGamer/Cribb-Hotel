@@ -7,29 +7,31 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function isAdmin() {
-      return isAuthenticated() && 
-        (request.auth.token.admin == true || 
-         request.auth.token.email.matches('.*admin.*') ||
-         exists(/databases/$(database)/documents/staff/$(request.auth.uid)));
+    // Staff & Administrator verification
+    function isStaff() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'joshuaegesienyinnaya@gmail.com' ||
+        request.auth.token.email.matches('.*admin.*') ||
+        request.auth.token.email.matches('.*staff.*') ||
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+      );
     }
 
     // Reservations collection
-    // Guests can create reservations. Everyone can read for real-time room availability checks.
-    // Full update/deletion requires authentication/admin or creator.
     match /reservations/{reservationId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if true;
     }
 
-    // Room Inventory collection (status, room numbers, cleanliness, booking status)
+    // Room Inventory collection
     match /rooms/{roomId} {
       allow read: if true;
       allow write: if true;
     }
 
-    // Guest folio and service requests (housekeeping, dining, concierge, maintenance)
+    // Guest folio and service requests
     match /service_requests/{requestId} {
       allow read, write: if true;
     }
@@ -39,10 +41,16 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // Staff accounts
+    // Staff accounts directory
     match /staff/{staffId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow write: if isStaff();
+    }
+
+    // Guest profiles & loyalty membership accounts
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
   }
 }
