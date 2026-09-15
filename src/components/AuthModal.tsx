@@ -7,7 +7,6 @@ import {
   User as UserIcon, 
   Eye, 
   EyeOff, 
-  ShieldCheck, 
   Sparkles, 
   ArrowRight, 
   CheckCircle2,
@@ -413,24 +412,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Back to Sign In
                 </button>
               </p>
-            )}
-
-            {/* Hotel Staff Access Link */}
-            {onOpenStaffPortal && (
-              <div className="pt-2 text-[11px] text-stone-400 flex items-center justify-center gap-1.5">
-                <span>Hotel Team &amp; Management?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onOpenStaffPortal();
-                  }}
-                  className="text-[#f8dec3] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Staff Sign In
-                </button>
-              </div>
             )}
           </div>
         </div>
