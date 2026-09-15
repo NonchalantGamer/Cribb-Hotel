@@ -197,7 +197,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               />
             </div>
             <div className="flex items-center justify-center gap-1.5 text-[#f8dec3] mb-1">
-              <Sparkles className="w-3.5 h-3.5" />
               <span className="text-[11px] font-mono font-bold tracking-[0.25em] uppercase">
                 Cribb Rewards &amp; Folio
               </span>
