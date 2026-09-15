@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Building, 
   Calendar, 
@@ -76,6 +77,30 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [newRequestText, setNewRequestText] = useState('');
   const [newRequestCategory, setNewRequestCategory] = useState<'Housekeeping' | 'Room Service' | 'Maintenance' | 'Concierge'>('Housekeeping');
   const [submittingRequest, setSubmittingRequest] = useState(false);
+
+  // Prevent background scroll when Admin Portal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // Handle ESC key to dismiss modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Initialize and listen to Firestore
   useEffect(() => {
@@ -255,12 +280,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div 
+      className="fixed inset-0 z-[10000] overflow-y-auto flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div 
         className="relative w-full max-w-6xl bg-stone-100 shadow-2xl border border-stone-300 overflow-hidden my-auto max-h-[95vh] flex flex-col"
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Top Operational Header */}
         <div className="bg-[#17283c] text-white px-6 py-4 flex items-center justify-between border-b border-stone-700">
@@ -1014,6 +1047,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { smoothScrollTo } from '../utils/scroll';
 import { StaffMember } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { AuthModal, AuthModalMode } from './AuthModal';
+import { AuthModalMode } from './AuthModal';
 
 interface NavbarProps {
   onOpenReserve: () => void;
@@ -27,8 +27,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { user, profile, logOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [experienceExpanded, setExperienceExpanded] = useState(false);
-  const [showSignInModal, setShowSignInModal] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>('signin');
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -59,18 +57,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, [mobileMenuOpen]);
 
-  // Handle ESC key to dismiss menu or modal
+  // Handle ESC key to dismiss menu or dropdown
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (userDropdownOpen) setUserDropdownOpen(false);
-        else if (showSignInModal) setShowSignInModal(false);
         else if (mobileMenuOpen) setMobileMenuOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mobileMenuOpen, showSignInModal, userDropdownOpen]);
+  }, [mobileMenuOpen, userDropdownOpen]);
 
   const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -84,9 +81,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const openAuth = (mode: AuthModalMode = 'signin') => {
     if (onOpenAuth) {
       onOpenAuth(mode);
-    } else {
-      setAuthModalMode(mode);
-      setShowSignInModal(true);
     }
   };
 
@@ -601,14 +595,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         </AnimatePresence>,
         document.body
       )}
-
-      {/* Sign In / Join Rewards Modal */}
-      <AuthModal
-        isOpen={showSignInModal}
-        onClose={() => setShowSignInModal(false)}
-        initialMode={authModalMode}
-        onOpenStaffPortal={onOpenStaffLogin}
-      />
     </header>
   );
 };

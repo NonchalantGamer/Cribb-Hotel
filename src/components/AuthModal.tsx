@@ -45,7 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Sync initial state when modal opens
+  // Sync initial state when modal opens and prevent background scroll
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
@@ -54,8 +54,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setConfirmPassword('');
       setErrorMessage('');
       setSuccessMessage('');
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen, initialMode, initialEmail]);
+
+  // Handle ESC key to dismiss modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || typeof document === 'undefined') return null;
 
@@ -150,6 +169,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     >
       <div 
         className="bg-[#17283c] border border-stone-700 text-white w-full max-w-md shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 my-8 overflow-hidden rounded-sm"
+        role="dialog"
+        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Gold Accent Bar */}
