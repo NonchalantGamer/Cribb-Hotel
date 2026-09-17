@@ -155,17 +155,30 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: textToSend.trim(),
-          history: messages.slice(-8).map((m) => ({ role: m.role, text: m.text }))
-        })
-      });
+      let res: Response | null = null;
+      let lastFetchErr: any = null;
 
-      if (!res.ok) {
-        throw new Error("Unable to connect to the Cribb Concierge service at this moment.");
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: textToSend.trim(),
+              history: messages.slice(-8).map((m) => ({ role: m.role, text: m.text }))
+            })
+          });
+          if (res.ok) break;
+        } catch (fetchErr) {
+          lastFetchErr = fetchErr;
+          if (attempt === 0) {
+            await new Promise((r) => setTimeout(r, 800));
+          }
+        }
+      }
+
+      if (!res || !res.ok) {
+        throw lastFetchErr || new Error("Unable to connect to the Cribb Concierge service at this moment.");
       }
 
       const data = await res.json();

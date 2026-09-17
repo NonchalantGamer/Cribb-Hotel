@@ -126,8 +126,8 @@ function generateContextualResponse(
     return "For a family of four, I recommend our Connecting Deluxe Rooms or the Ambassador Suite, which accommodates up to 4 guests with extra living space. What dates are you planning to visit?";
   }
 
-  if (/what rooms|room types|what kind of rooms/i.test(q)) {
-    return "We offer Classic Deluxe Rooms, Executive Club Rooms, and Luxury Suites (Ambassador and Presidential). If you share your dates and number of guests, I can help you choose the best option.";
+  if (/what rooms|room types|what kind of rooms|choose a room|help me choose|recommend a room|find a room/i.test(q)) {
+    return "We offer 5 luxury room categories: Classic Deluxe Rooms (42 m²), Executive Club Rooms (55 m² with private club lounge access), and Luxury Suites (Ambassador 85 m² and Presidential 160 m²). How many guests will be staying with you, and do you prefer city or Atlantic ocean views?";
   }
 
   if (/facilities|amenities/i.test(q)) {
@@ -315,7 +315,7 @@ ${formattedContext}`;
           contents.push({ role: "user", parts: [{ text: message }] });
 
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Gemini API call timed out after 3500ms")), 3500)
+            setTimeout(() => reject(new Error("Gemini API call timed out after 7500ms")), 7500)
           );
 
           const response: any = await Promise.race([
