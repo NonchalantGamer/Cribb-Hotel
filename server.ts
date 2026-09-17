@@ -315,12 +315,12 @@ ${formattedContext}`;
           contents.push({ role: "user", parts: [{ text: message }] });
 
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Gemini API call timed out after 7500ms")), 7500)
+            setTimeout(() => reject(new Error("Gemini API call timed out after 3000ms")), 3000)
           );
 
           const response: any = await Promise.race([
             ai.models.generateContent({
-              model: "gemini-3.8-flash",
+              model: "gemini-3.6-flash",
               contents,
               config: {
                 systemInstruction,
@@ -343,7 +343,7 @@ ${formattedContext}`;
         }
       }
 
-      // Step 3: Context-aware Intelligent Synthesis (Fall-through if Gemini key is missing or model busy)
+      // Step 3: Context-aware Intelligent Synthesis (Fall-through if Gemini key is missing, rate-limited, or model busy)
       const synthesizedReply = generateContextualResponse(message, history || [], ragContext);
       return res.json({
         reply: synthesizedReply,
@@ -353,7 +353,13 @@ ${formattedContext}`;
       });
     } catch (err: any) {
       console.error("Chat error:", err);
-      res.status(500).json({ error: "Failed to process concierge request" });
+      // Resilient fallback - always return valid concierge JSON
+      return res.json({
+        reply: "Welcome to Cribb Hotel & Resorts. Our concierge and 24/7 Front Desk are directly reachable at ext. 0 or +234 1 277 8888. How may I assist your stay today?",
+        groundedSources: ["Cribb Hotel Front Desk"],
+        intent: "general_hotel_info",
+        source: "fallback_concierge"
+      });
     }
   });
 

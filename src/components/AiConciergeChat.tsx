@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, Bot, User, ShieldCheck, RotateCcw, AlertCircle, ArrowRight, ArrowDown, CheckCircle2 } from 'lucide-react';
+import { Sparkles, X, Send, Bot, User, RotateCcw, AlertCircle, ArrowRight, ArrowDown, CheckCircle2 } from 'lucide-react';
 import { ChatMessage } from '../types';
 
 interface AiConciergeChatProps {
@@ -16,6 +16,62 @@ const INITIAL_WELCOME_MESSAGE: ChatMessage = {
   groundedSources: ["Cribb Hotel Concierge"]
 };
 
+function getOfflineConciergeFallback(query: string): { text: string; sources: string[] } {
+  const q = query.toLowerCase();
+  if (/facilities|amenities/i.test(q)) {
+    return {
+      text: "We offer 5-star facilities throughout the property:\n• Heated outdoor infinity pool (6:00 AM – 9:00 PM)\n• 24/7 fitness center on the 3rd floor\n• Serenity Spa & wellness treatments\n• &More by Cribb & Heritage Grill restaurants\n• High-speed Wi-Fi & business center\n• Secure valet parking & private airport transfers",
+      sources: ["Cribb Hotel Facilities Directory"]
+    };
+  }
+  if (/what rooms|room types|choose a room|help me choose|recommend a room|room/i.test(q)) {
+    return {
+      text: "We offer 5 luxury room categories:\n1. Classic Deluxe Room (42 m² with marble bath)\n2. Executive Club Room (55 m² with private club lounge access)\n3. Luxury Suites (Ambassador 85 m² and Presidential 160 m²).\nHow many guests will be staying, and do you prefer city or Atlantic ocean views?",
+      sources: ["Cribb Accommodations Guide"]
+    };
+  }
+  if (/check.?in/i.test(q)) {
+    return {
+      text: "Check-in begins at 3:00 PM. Early check-in is subject to room availability upon arrival.",
+      sources: ["Cribb Reception Policies"]
+    };
+  }
+  if (/check.?out/i.test(q)) {
+    return {
+      text: "Check-out time is 12:00 PM noon. Late check-out can be requested with the front desk.",
+      sources: ["Cribb Reception Policies"]
+    };
+  }
+  if (/pool|swimming/i.test(q)) {
+    return {
+      text: "Our heated outdoor infinity pool is open daily from 6:00 AM to 9:00 PM with dedicated poolside beverage and snack service.",
+      sources: ["Pool & Wellness Directory"]
+    };
+  }
+  if (/gym|fitness/i.test(q)) {
+    return {
+      text: "The fitness center is open 24 hours daily on the 3rd floor with modern cardio and strength equipment.",
+      sources: ["Fitness Center"]
+    };
+  }
+  if (/wifi|internet/i.test(q)) {
+    return {
+      text: "Complimentary high-speed Wi-Fi is available across all rooms, suites, and public guest areas.",
+      sources: ["Guest Connectivity"]
+    };
+  }
+  if (/restaurant|dining|food|breakfast/i.test(q)) {
+    return {
+      text: "We feature &More by Cribb (buffet breakfast 6:30 AM – 10:30 AM), Heritage Grill, and 24/7 in-room dining.",
+      sources: ["Dining & Lounges"]
+    };
+  }
+  return {
+    text: "Welcome to Cribb Hotel & Resorts. Our 24/7 Front Desk is always directly reachable at ext. 0 or +234 1 277 8888 for immediate personal assistance.",
+    sources: ["Cribb Hotel Front Desk Directory"]
+  };
+}
+
 export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
   onOpenReserve,
   initialQuery,
@@ -28,6 +84,7 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_WELCOME_MESSAGE]);
   const [showScrollBottomButton, setShowScrollBottomButton] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -83,7 +140,11 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
 
       const handleEscape = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-          setIsOpen(false);
+          if (showResetConfirm) {
+            setShowResetConfirm(false);
+          } else {
+            setIsOpen(false);
+          }
         }
       };
       window.addEventListener('keydown', handleEscape);
@@ -93,7 +154,7 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
         window.removeEventListener('keydown', handleEscape);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, showResetConfirm]);
 
   const handleSelectSuggestedPrompt = (prompt: string) => {
     setInputMessage(prompt);
@@ -192,18 +253,18 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
 
       setMessages((prev) => [...prev, botMsg]);
     } catch (err: any) {
-      console.error("Chat failure:", err);
-      setErrorStatus(err?.message || "Communication interrupted.");
-      setLastFailedMessage(textToSend);
-
+      console.warn("Using offline concierge knowledge fallback:", err);
+      const fallback = getOfflineConciergeFallback(textToSend);
       const botFallback: ChatMessage = {
-        id: "bot-err-" + Date.now(),
+        id: "bot-offline-" + Date.now(),
         role: "model",
-        text: "I apologize for the momentary connection delay. You can reach our 24/7 Front Desk directly at ext. 0 or +234 1 277 8888, or retry your request using the button below.",
+        text: fallback.text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        groundedSources: ["Cribb Hotel Offline Directory"]
+        groundedSources: fallback.sources
       };
       setMessages((prev) => [...prev, botFallback]);
+      setErrorStatus(null);
+      setLastFailedMessage(null);
     } finally {
       setLoading(false);
     }
@@ -294,7 +355,7 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
               <span className="text-xs font-bold uppercase tracking-wider block leading-tight">
                 Cribb Concierge AI
               </span>
-              <span className="text-[10px] text-[#f8dec3] font-mono">Real-Time Support • RAG</span>
+              <span className="text-[10px] text-[#f8dec3] font-mono">Real-Time Support</span>
             </div>
           </button>
         </div>
@@ -303,7 +364,56 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
       {/* Expanded Support Console */}
       {isOpen && (
         <div className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50">
-          <div className="w-[94vw] sm:w-[440px] h-[620px] max-h-[88vh] bg-white border border-stone-200 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
+          <div className="w-[94vw] sm:w-[440px] h-[620px] max-h-[88vh] bg-white border border-stone-200 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-200 relative">
+          {/* Reset Confirmation Overlay */}
+          {showResetConfirm && (
+            <div 
+              className="absolute inset-0 z-30 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="reset-dialog-title"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setShowResetConfirm(false);
+              }}
+            >
+              <div 
+                className="bg-white border border-stone-300 shadow-2xl p-6 max-w-[320px] w-full text-center space-y-3.5 animate-in zoom-in-95 duration-150"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-11 h-11 mx-auto rounded-full bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
+                  <RotateCcw className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 id="reset-dialog-title" className="text-base font-serif font-bold text-[#17283c]">
+                    Reset Conversation?
+                  </h4>
+                  <p className="text-xs text-stone-600 mt-1.5 leading-relaxed">
+                    Are you sure you want to reset this conversation? This will clear your chat history for this session.
+                  </p>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetConfirm(false)}
+                    className="flex-1 py-2.5 px-3 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 transition-colors border border-stone-300 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleClearChat();
+                      setShowResetConfirm(false);
+                    }}
+                    className="flex-1 py-2.5 px-3 text-xs font-bold uppercase tracking-wider text-white bg-[#17283c] hover:bg-[#0f1c2d] transition-colors cursor-pointer shadow-xs"
+                  >
+                    Confirm Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Console Header */}
           <div className="bg-[#17283c] text-white px-4 py-3 flex items-center justify-between border-b border-stone-700">
             <div className="flex items-center gap-2.5">
@@ -319,38 +429,28 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
                   <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" title="System Online" />
                 </div>
                 <p className="text-[10px] text-stone-300 tracking-wider">
-                  Real-Time 5-Star Guest Support & RAG
+                  Real-Time 5-Star Guest Support
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5">
               <button
-                onClick={handleClearChat}
+                onClick={() => setShowResetConfirm(true)}
                 title="Reset conversation"
-                className="p-1.5 text-stone-400 hover:text-[#f8dec3] rounded transition-colors"
+                className="p-1.5 text-stone-400 hover:text-[#f8dec3] rounded transition-colors cursor-pointer"
                 aria-label="Clear chat history"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-white rounded transition-colors"
+                className="p-1.5 text-stone-400 hover:text-white rounded transition-colors cursor-pointer"
                 aria-label="Close concierge"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-          </div>
-
-          {/* RAG Verification Banner */}
-          <div className="bg-[#efeae4] px-4 py-1.5 flex items-center justify-between text-[10px] text-[#17283c] border-b border-stone-200 font-medium">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" /> Grounded in Official Cribb Knowledge
-            </span>
-            <span className="text-[9px] bg-white px-1.5 py-0.5 border border-stone-300 text-stone-600">
-              RAG + LLM
-            </span>
           </div>
 
           {/* Messages Stream */}
