@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Award, Gift, Sparkles, Clock, Key, Check, ArrowRight, UserCheck } from 'lucide-react';
+import { Award, Gift, Sparkles, Clock, Key, ArrowRight, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { PostStayFeedbackForm } from './PostStayFeedbackForm';
 
 interface RewardsSectionProps {
   onOpenReserve: () => void;
@@ -17,6 +18,13 @@ export const RewardsSection: React.FC<RewardsSectionProps> = ({ onOpenReserve, o
       if (onOpenAuth) {
         onOpenAuth('signup', email);
       }
+    }
+  };
+
+  const scrollToFeedback = () => {
+    const el = document.getElementById('post-stay-feedback');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -100,35 +108,58 @@ export const RewardsSection: React.FC<RewardsSectionProps> = ({ onOpenReserve, o
                     </div>
                   </div>
 
-                  <button
-                    onClick={onOpenReserve}
-                    className="h-11 px-6 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer"
-                  >
-                    <span>Book With Points</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={scrollToFeedback}
+                      className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 border border-stone-600 cursor-pointer"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-[#f8dec3]" />
+                      <span>Rate Stay (+250 Pts)</span>
+                    </button>
+                    <button
+                      onClick={onOpenReserve}
+                      className="h-11 px-6 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer"
+                    >
+                      <span>Book With Points</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <form onSubmit={handleJoin} className="flex flex-col sm:flex-row gap-3 max-w-xl">
-                  <input
-                    type="email"
-                    required
-                    placeholder="Enter your email to join or sign in..."
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 h-12 px-4 bg-white/10 border border-stone-600 focus:border-[#f8dec3] focus:bg-white/20 text-white placeholder:text-stone-400 text-sm focus:outline-none"
-                  />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <form onSubmit={handleJoin} className="flex flex-col sm:flex-row gap-3 max-w-xl flex-1 w-full">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Enter your email to join or sign in..."
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-1 h-12 px-4 bg-white/10 border border-stone-600 focus:border-[#f8dec3] focus:bg-white/20 text-white placeholder:text-stone-400 text-sm focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="h-12 px-8 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-widest transition-colors flex-shrink-0 cursor-pointer"
+                    >
+                      Join Cribb Rewards
+                    </button>
+                  </form>
+
                   <button
-                    type="submit"
-                    className="h-12 px-8 bg-[#f8dec3] hover:bg-[#edd0b2] text-[#17283c] text-xs font-bold uppercase tracking-widest transition-colors flex-shrink-0 cursor-pointer"
+                    type="button"
+                    onClick={scrollToFeedback}
+                    className="h-12 px-4 bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 border border-stone-600 cursor-pointer shrink-0"
                   >
-                    Join Cribb Rewards
+                    <MessageSquare className="w-4 h-4 text-[#f8dec3]" />
+                    <span>Rate Recent Stay</span>
                   </button>
-                </form>
+                </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Post-Stay Guest Feedback Form Component */}
+        <PostStayFeedbackForm onOpenAuth={onOpenAuth} onOpenReserve={onOpenReserve} />
       </div>
     </section>
   );

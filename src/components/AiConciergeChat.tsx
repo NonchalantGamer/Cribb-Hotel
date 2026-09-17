@@ -20,7 +20,7 @@ function getOfflineConciergeFallback(query: string): { text: string; sources: st
   const q = query.toLowerCase();
   if (/facilities|amenities/i.test(q)) {
     return {
-      text: "We offer 5-star facilities throughout the property:\n• Heated outdoor infinity pool (6:00 AM – 9:00 PM)\n• 24/7 fitness center on the 3rd floor\n• Serenity Spa & wellness treatments\n• &More by Cribb & Heritage Grill restaurants\n• High-speed Wi-Fi & business center\n• Secure valet parking & private airport transfers",
+      text: "We offer 5-star facilities throughout the property:\n• Heated outdoor infinity pool (6:00 AM – 9:00 PM)\n• 24/7 fitness center on the 3rd floor\n• Serenity Spa & wellness treatments\n• More by Cribb & Heritage Grill restaurants\n• High-speed Wi-Fi & business center\n• Secure valet parking & private airport transfers",
       sources: ["Cribb Hotel Facilities Directory"]
     };
   }
@@ -62,7 +62,7 @@ function getOfflineConciergeFallback(query: string): { text: string; sources: st
   }
   if (/restaurant|dining|food|breakfast/i.test(q)) {
     return {
-      text: "We feature &More by Cribb (buffet breakfast 6:30 AM – 10:30 AM), Heritage Grill, and 24/7 in-room dining.",
+      text: "We feature More by Cribb (buffet breakfast 6:30 AM – 10:30 AM), Heritage Grill, and 24/7 in-room dining.",
       sources: ["Dining & Lounges"]
     };
   }
@@ -196,6 +196,7 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
     ]);
     setErrorStatus(null);
     setLastFailedMessage(null);
+    setShowScrollBottomButton(false);
   };
 
   const sendMessage = async (textToSend: string) => {
@@ -368,7 +369,7 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
           {/* Reset Confirmation Overlay */}
           {showResetConfirm && (
             <div 
-              className="absolute inset-0 z-30 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+              className="absolute inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
               role="alertdialog"
               aria-modal="true"
               aria-labelledby="reset-dialog-title"
@@ -540,8 +541,8 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
             )}
 
             {/* Quick jump to latest message if user has scrolled up */}
-            {showScrollBottomButton && (
-              <div className="sticky bottom-1 flex justify-center z-30 pointer-events-none">
+            {!showResetConfirm && showScrollBottomButton && (
+              <div className="sticky bottom-1 flex justify-center z-20 pointer-events-none">
                 <button
                   type="button"
                   onClick={() => scrollToBottom('smooth')}

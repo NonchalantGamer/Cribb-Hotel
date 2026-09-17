@@ -11,7 +11,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { BookingRecord, HotelRoomInventory, HotelServiceRequest, BookingStatus, RoomCleanStatus, StaffMember } from '../types';
+import { BookingRecord, HotelRoomInventory, HotelServiceRequest, BookingStatus, RoomCleanStatus, StaffMember, PostStayFeedback } from '../types';
 
 export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
   {
@@ -538,4 +538,92 @@ export function isStaffEmail(email: string): boolean {
     INITIAL_STAFF_MEMBERS.some(s => s.email.toLowerCase() === clean) ||
     clean.endsWith('@cribbhotel.com')
   );
+}
+
+export const INITIAL_FEEDBACK_ITEMS: PostStayFeedback[] = [
+  {
+    id: 'fb-1',
+    guestName: 'Eleanor Sterling',
+    guestEmail: 'eleanor.sterling@outlook.com',
+    confirmationId: 'CRB-712894',
+    roomNumber: '401',
+    overallRating: 5,
+    staffRating: 5,
+    cleanlinessRating: 5,
+    diningRating: 5,
+    recommend: 'yes',
+    highlightCategory: 'Staff & Hospitality',
+    comments: 'An exquisite stay from arrival to departure. The concierge team went above and beyond to arrange our private boat excursion, and dinner at Heritage Grill was unforgettable.',
+    createdAt: '2 days ago',
+    rewardPointsEarned: 250
+  },
+  {
+    id: 'fb-2',
+    guestName: 'Chief Adebayo Balogun',
+    guestEmail: 'adebayo.balogun@lagoscorp.ng',
+    confirmationId: 'CRB-849201',
+    roomNumber: '502',
+    overallRating: 5,
+    staffRating: 5,
+    cleanlinessRating: 5,
+    diningRating: 4,
+    recommend: 'yes',
+    highlightCategory: 'Room & Bedding',
+    comments: 'The Presidential Suite was immaculate with breathtaking Atlantic ocean views. Exceptional soundproofing and turn-down service. Will return for our annual summit.',
+    createdAt: '5 days ago',
+    rewardPointsEarned: 250
+  },
+  {
+    id: 'fb-3',
+    guestName: 'Marcus & Sophia Weber',
+    guestEmail: 'm.weber@munich-tech.de',
+    confirmationId: 'CRB-559123',
+    roomNumber: '302',
+    overallRating: 5,
+    staffRating: 5,
+    cleanlinessRating: 5,
+    diningRating: 5,
+    recommend: 'yes',
+    highlightCategory: 'Pool & Spa',
+    comments: 'Serenity Spa treatments were rejuvenating, and the infinity pool at sunset is pure magic. Outstanding breakfast buffet with both continental and local specialties.',
+    createdAt: '1 week ago',
+    rewardPointsEarned: 250
+  }
+];
+
+export async function submitPostStayFeedback(feedback: Omit<PostStayFeedback, 'id' | 'createdAt'>): Promise<PostStayFeedback> {
+  const id = 'fb-' + Date.now();
+  const newFeedback: PostStayFeedback = {
+    ...feedback,
+    id,
+    createdAt: 'Just now'
+  };
+
+  try {
+    await setDoc(doc(db, 'feedback', id), {
+      ...newFeedback,
+      submittedAt: serverTimestamp()
+    });
+  } catch (err) {
+    console.warn('Could not save feedback to Firestore, using local fallback:', err);
+  }
+
+  return newFeedback;
+}
+
+export async function getFeedbackList(): Promise<PostStayFeedback[]> {
+  try {
+    const q = query(collection(db, 'feedback'), orderBy('submittedAt', 'desc'));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const items: PostStayFeedback[] = [];
+      snap.forEach(docSnap => {
+        items.push(docSnap.data() as PostStayFeedback);
+      });
+      return items;
+    }
+  } catch (err) {
+    console.warn('Could not fetch feedback from Firestore, using initial list:', err);
+  }
+  return INITIAL_FEEDBACK_ITEMS;
 }

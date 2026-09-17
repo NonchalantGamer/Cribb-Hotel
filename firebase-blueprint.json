@@ -73,12 +73,37 @@
         "memberSince": { "type": "string" }
       },
       "required": ["uid", "email"]
+    },
+    "feedback": {
+      "title": "Post-Stay Guest Feedback",
+      "description": "Post-stay guest ratings, comments, and experience reviews.",
+      "type": "object",
+      "properties": {
+        "guestName": { "type": "string", "maxLength": 100 },
+        "guestEmail": { "type": "string", "format": "email" },
+        "confirmationId": { "type": "string", "maxLength": 30 },
+        "roomNumber": { "type": "string", "maxLength": 20 },
+        "overallRating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "staffRating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "cleanlinessRating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "diningRating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "recommend": { "type": "string", "enum": ["yes", "no", "maybe"] },
+        "comments": { "type": "string", "maxLength": 2000 },
+        "highlightCategory": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "rewardPointsEarned": { "type": "number" }
+      },
+      "required": ["guestName", "guestEmail", "overallRating", "comments"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/users" },
       "description": "Guest profiles and Cribb rewards accounts."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": { "$ref": "#/entities/feedback" },
+      "description": "Post-stay guest feedback and reviews."
     },
     "/staff/{staffId}": {
       "schema": { "$ref": "#/entities/staff" },

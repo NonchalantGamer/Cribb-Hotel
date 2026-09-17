@@ -120,3 +120,20 @@ export interface UserProfile {
   rewardPoints: number;
   memberSince: string;
 }
+
+export interface PostStayFeedback {
+  id: string;
+  guestName: string;
+  guestEmail: string;
+  confirmationId?: string;
+  roomNumber?: string;
+  overallRating: number; // 1 to 5
+  staffRating?: number; // 1 to 5
+  cleanlinessRating?: number; // 1 to 5
+  diningRating?: number; // 1 to 5
+  recommend: 'yes' | 'no' | 'maybe';
+  comments: string;
+  highlightCategory?: string;
+  createdAt: string;
+  rewardPointsEarned?: number;
+}

@@ -179,6 +179,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
 
                   <div className="pt-2.5 border-t border-stone-700 space-y-2">
+                    <a
+                      href="#post-stay-feedback"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="w-full py-1.5 px-3 bg-white/10 hover:bg-white/20 text-[#f8dec3] hover:text-white text-xs font-semibold text-center cursor-pointer transition-colors block border border-stone-700"
+                    >
+                      Rate Recent Stay (+250 Pts)
+                    </a>
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);

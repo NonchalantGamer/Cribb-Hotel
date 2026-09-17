@@ -190,18 +190,18 @@ export const ROOM_OPTIONS: RoomOption[] = [
 // 44de2f5d-cde1-4000-b453-ec7c412ea329.png
 export const CAROUSEL_SECTION_1_IMAGES = [
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140111/2f8a1289-6a5f-4084-8a4f-d2a2b70cfe3b.png",
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636611/f9e365e1-d690-4f73-b5e6-e6504c059268.png",
     caption: "The Community Table",
     subtext: "Designed to spark conversation, facilitate remote collaboration, and bring guests together seamlessly."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140171/3d993bc1-4b8d-4941-8330-dba6f1f8ca16.png",
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636171/44454481-4382-4746-8ee4-b139abdd28d9.png",
     caption: "The Cribb Club Lounge",
     subtext: "A refined retreat crafted for focus, connection, premium culinary presentations, and morning barista service."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140212/44de2f5d-cde1-4000-b453-ec7c412ea329.png",
-    caption: "&More by Cribb",
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636385/77e00f2a-4fff-45ac-92bf-11d34a886d64.png",
+    caption: "More by Cribb",
     subtext: "An all-day dining and social lounge that transitions effortlessly from morning coffee to twilight cocktails."
   }
 ];
@@ -209,44 +209,52 @@ export const CAROUSEL_SECTION_1_IMAGES = [
 // Carousel 2 images provided by user (8 images):
 export const CAROUSEL_SECTION_2_IMAGES = [
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140663/7e4db3f1-70ca-4fb8-bdd6-cc557a5ff066.png",
-    title: "Sophisticated Living",
-    destination: "Cribb Grand Suites"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636215/ed3e84a5-c80d-4581-8c47-2b60eb8e602c.png",
+    title: "Elegant Parisian Suite",
+    destination: "Cribb Grand Suites",
+    description: "Curved bouclé seating and floor-to-ceiling glass doors open onto a private balcony framing historic Parisian rooftops."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140675/af2de88b-1d52-4702-9632-fb4ad1f16653.png",
-    title: "Gather & Celebrate",
-    destination: "Meetings & Grand Ballroom"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636580/fba51f07-a2fd-4d26-915f-dcc71ad159de.png",
+    title: "Alpine Chalet Retreat",
+    destination: "St. Moritz Mountain Chalet",
+    description: "Guests gather around an outdoor stone hearth beneath twilight mountain peaks, pine forests, and winter wonderlands."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140758/a0f0f8a1-c649-4be1-a874-05765fced511.png",
-    title: "Culinary Artistry",
-    destination: "The Heritage Grillhouse"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636276/425923d1-432b-40e4-b31f-4cfbc20872be.png",
+    title: "Alpine Infinity Oasis",
+    destination: "Panoramic Valley Pool",
+    description: "Submerged infinity loungers gaze across forested valleys and majestic alpine crests bathed in golden sunset light."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140863/54223686-be1b-43d2-b571-38430f9321d8.png",
-    title: "Wellness & Serenity",
-    destination: "Cribb Spa & Thermal Baths"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636322/90e90b33-2b44-496f-8c9b-67eb68fed5a6.png",
+    title: "Vaulted Grotto Spa",
+    destination: "Subterranean Thermal Baths",
+    description: "Peaceful candlelit waters resting beneath historic vaulted stone arches, framed by plush loungers and lush greenery."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140902/3159a754-85bc-4b85-9794-fe5cc0adf485.png",
-    title: "Luminous Spaces",
-    destination: "The Atrium & Palm Court"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636694/5e61e7f1-1a88-4953-b150-16276ac4540d.png",
+    title: "The Fireside Library",
+    destination: "Heritage Reading Lounge",
+    description: "Floor-to-ceiling dark-wood bookcases, rich leather armchairs, and a roaring fireplace crafted for quiet contemplation."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140925/f9776653-dbc3-4963-ab18-0a0c50d79f5b.png",
-    title: "Sunset Mixology",
-    destination: "Azure Rooftop Terrace"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636987/e87ee172-bfe8-46c4-b25e-139f54cca454.png",
+    title: "Oceanfront Tulum Pavilion",
+    destination: "Coastal Beachfront Resort",
+    description: "Lantern-lit sand pathways weave through tropical palms toward an open-air beachfront bar and calm ocean waves."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140953/9f2e170d-c96e-4012-b4e8-e5976eefc66e.png",
-    title: "Oasis by the Water",
-    destination: "Resort Infinity Pool"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789636474/a49bfc3c-95ef-4f3d-86a3-53089db6af72.png",
+    title: "Cliffside Mediterranean Haven",
+    destination: "Amalfi Coastal Terrace",
+    description: "Sun-drenched terraces draped in bougainvillea with cliffside infinity loungers overlooking yachts across deep blue waters."
   },
   {
-    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789140983/1e1506f4-6cc4-46b8-a977-1d08bacbb875.png",
-    title: "Warm Welcome",
-    destination: "Cribb Iconic Lobby Lounge"
+    url: "https://res.cloudinary.com/doujptiz/image/upload/v1789635970/53f802bc-3821-4f7d-bc57-8b4183cd9535.png",
+    title: "Warm Welcome & Arrival",
+    destination: "Cribb Grand Lobby Reception",
+    description: "Dedicated front desk concierge greets each guest with bespoke check-in service amid warm fluted wood interiors."
   }
 ];
 
@@ -254,16 +262,16 @@ export const PILLARS = [
   {
     title: "The Community Table",
     description: "Purpose-built central tables integrated with ergonomic charging, warm ambient lighting, and high-speed wireless connectivity for communal productivity and conversation.",
-    image: "https://res.cloudinary.com/doujptiz/image/upload/v1789140111/2f8a1289-6a5f-4084-8a4f-d2a2b70cfe3b.png"
+    image: "https://res.cloudinary.com/doujptiz/image/upload/v1789636194/c925263f-8eb8-4ae8-9959-32fdaedaa849.png"
   },
   {
     title: "The Cribb Club",
     description: "An elevated private retreat reserved for Club guests, offering personalized check-in, continuous gourmet bites, and panoramic vistas in an atmosphere of refined comfort.",
-    image: "https://res.cloudinary.com/doujptiz/image/upload/v1789140171/3d993bc1-4b8d-4941-8330-dba6f1f8ca16.png"
+    image: "https://res.cloudinary.com/doujptiz/image/upload/v1789636234/91c38b49-df39-4b27-97ef-86e9afcfbdd3.png"
   },
   {
-    title: "&More by Cribb",
+    title: "More by Cribb",
     description: "A dynamic gathering venue that evolves fluidly throughout your day, from locally roasted artisanal espresso to small plates and sommelier-selected vintages by night.",
-    image: "https://res.cloudinary.com/doujptiz/image/upload/v1789140212/44de2f5d-cde1-4000-b453-ec7c412ea329.png"
+    image: "https://res.cloudinary.com/doujptiz/image/upload/v1789639692/78534a3f-dc89-42a2-b083-abc02e466252.png"
   }
 ];

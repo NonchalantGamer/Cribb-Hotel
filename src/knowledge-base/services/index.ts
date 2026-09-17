@@ -8,7 +8,7 @@ export const servicesKnowledge: KnowledgeChunk[] = [
     title: 'Restaurants, Bars & Culinary Experiences',
     keywords: ['dining', 'restaurant', 'food', 'breakfast', 'dinner', 'lunch', 'eat', 'menu', 'bar', 'cocktails', 'heritage grill', 'more by cribb'],
     content: `Culinary Venues at Cribb Hotel:
-1. &More by Cribb (Ground Lobby Atrium):
+1. More by Cribb (Ground Lobby Atrium):
    - Concept: All-day social hub transitioning from artisanal barista specialty coffee and oven-fresh pastries in the morning to craft cocktails and small plates in the evening.
    - Operating Hours: [RESTAURANT HOURS - 6:00 AM to 11:30 PM].
 2. The Heritage Grillhouse:

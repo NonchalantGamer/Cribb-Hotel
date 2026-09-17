@@ -10,7 +10,7 @@ import {
   signOut,
   onAuthStateChanged
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { UserProfile } from '../types';
 
@@ -24,6 +24,7 @@ interface AuthContextType {
   sendResetPassword: (email: string) => Promise<void>;
   logOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  addRewardPoints: (points: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,6 +137,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const addRewardPoints = async (points: number) => {
+    if (!user || !profile) return;
+    const currentPoints = profile.rewardPoints ?? 2500;
+    const newTotal = currentPoints + points;
+    const updatedProfile: UserProfile = { ...profile, rewardPoints: newTotal };
+    setProfile(updatedProfile);
+
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { rewardPoints: newTotal });
+    } catch (err) {
+      console.warn('Could not update reward points in Firestore, state updated locally:', err);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -147,7 +163,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUpWithEmail,
         sendResetPassword,
         logOut,
-        refreshProfile
+        refreshProfile,
+        addRewardPoints
       }}
     >
       {children}

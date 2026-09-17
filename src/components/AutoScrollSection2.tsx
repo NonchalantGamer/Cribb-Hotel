@@ -98,21 +98,26 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrev}
-              className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
-              aria-label="Next image"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[#f8dec3] font-mono tracking-widest">
+              0{currentIndex + 1} / 0{CAROUSEL_SECTION_2_IMAGES.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrev}
+                className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleNext}
+                className="w-10 h-10 rounded-full border border-stone-600 hover:border-[#f8dec3] hover:text-[#f8dec3] flex items-center justify-center transition-colors"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -138,8 +143,8 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 lg:p-12">
                 <div className="max-w-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2.5 py-0.5 bg-[#f8dec3] text-[#17283c] text-[10px] font-bold uppercase tracking-widest">
-                      {currentIndex + 1} of 8
+                    <span className="px-2.5 py-0.5 bg-[#f8dec3] text-[#17283c] text-[10px] font-bold uppercase tracking-widest font-mono">
+                      0{currentIndex + 1} / 0{CAROUSEL_SECTION_2_IMAGES.length}
                     </span>
                     <span className="text-xs text-[#f8dec3] font-medium flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" /> {activeItem.destination}
@@ -148,8 +153,8 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white mb-2">
                     {activeItem.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-stone-300">
-                    Experience unmatched refinement, authentic hospitality, and thoughtful architecture.
+                  <p className="text-xs sm:text-sm text-stone-200 leading-relaxed max-w-lg font-sans">
+                    {activeItem.description}
                   </p>
                   {onOpenReserve && (
                     <button
