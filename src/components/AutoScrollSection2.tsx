@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Compass, MapPin } from 'lucide-react';
 import { CAROUSEL_SECTION_2_IMAGES } from '../data/hotelData';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
@@ -85,7 +85,7 @@ export const AutoScrollSection2: React.FC<AutoScrollSection2Props> = ({ onOpenRe
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2 text-[#f8dec3]">
-              <Sparkles className="w-4 h-4" />
+              <Compass className="w-4 h-4" />
               <span className="text-xs font-bold tracking-[0.25em] uppercase">
                 Curated Gallery • 8 Signature Perspectives
               </span>

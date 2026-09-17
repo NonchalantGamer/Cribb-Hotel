@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Search, Calendar, Users, MapPin, Tag, Check, ArrowRight, ShieldCheck, Sparkles, Loader2, Phone, UserCheck } from 'lucide-react';
+import { X, Search, Calendar, Users, MapPin, Tag, Check, ArrowRight, ShieldCheck, Bot, Loader2, Phone, UserCheck } from 'lucide-react';
 import { DESTINATIONS, ROOM_OPTIONS } from '../data/hotelData';
 import { ReservationParams, BookingRecord } from '../types';
 import { createReservationInFirebase } from '../lib/hotelDatabaseService';
@@ -353,7 +353,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                         }}
                         className="text-xs text-[#17283c] font-semibold flex items-center gap-1 hover:underline"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Ask AI Concierge for recommendations
+                        <Bot className="w-3.5 h-3.5 text-amber-600" /> Ask AI Concierge for recommendations
                       </button>
                     )}
                   </div>

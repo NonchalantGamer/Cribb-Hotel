@@ -10,7 +10,7 @@ import {
   XCircle, 
   RefreshCw, 
   Key, 
-  Sparkles, 
+  Bell, 
   SlidersHorizontal,
   DollarSign,
   BedDouble,
@@ -565,7 +565,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       : 'border-transparent text-stone-500 hover:text-stone-800'
                   }`}
                 >
-                  <Sparkles className="w-4 h-4" /> 
+                  <Bell className="w-4 h-4" /> 
                   Guest Requests 
                   <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-900 rounded-full text-[10px]">
                     {serviceRequests.length}

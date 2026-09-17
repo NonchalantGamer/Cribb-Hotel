@@ -7,7 +7,6 @@ import {
   User as UserIcon, 
   Eye, 
   EyeOff, 
-  Sparkles, 
   ArrowRight, 
   CheckCircle2,
   AlertCircle

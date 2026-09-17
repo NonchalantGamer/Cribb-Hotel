@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, Gift, Sparkles, Clock, Key, ArrowRight, MessageSquare } from 'lucide-react';
+import { Award, Gift, Gem, Clock, Key, ArrowRight, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PostStayFeedbackForm } from './PostStayFeedbackForm';
 
@@ -67,7 +67,7 @@ export const RewardsSection: React.FC<RewardsSectionProps> = ({ onOpenReserve, o
               </div>
 
               <div className="space-y-1">
-                <Sparkles className="w-6 h-6 text-[#f8dec3] mb-2" />
+                <Gem className="w-6 h-6 text-[#f8dec3] mb-2" />
                 <h4 className="text-sm font-bold text-white">Complimentary Upgrades</h4>
                 <p className="text-xs text-stone-300">Enhanced views and suite upgrades based on availability.</p>
               </div>

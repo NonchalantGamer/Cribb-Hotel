@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, Bot, User, RotateCcw, AlertCircle, ArrowRight, ArrowDown, CheckCircle2 } from 'lucide-react';
+import { Loader2, X, Send, Bot, User, RotateCcw, AlertCircle, ArrowRight, ArrowDown, CheckCircle2 } from 'lucide-react';
 import { ChatMessage } from '../types';
 
 interface AiConciergeChatProps {
@@ -519,7 +519,7 @@ export const AiConciergeChat: React.FC<AiConciergeChatProps> = ({
             {loading && (
               <div className="flex gap-2 items-center text-xs text-[#54657a] pl-2 animate-pulse">
                 <div className="w-5 h-5 rounded-full bg-[#17283c] flex items-center justify-center text-[#f8dec3]">
-                  <Sparkles className="w-3 h-3 animate-spin" />
+                  <Loader2 className="w-3 h-3 animate-spin" />
                 </div>
                 <span>Retrieving verified hotel knowledge & synthesizing response...</span>
               </div>

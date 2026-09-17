@@ -3,7 +3,7 @@ import {
   Star, 
   Award, 
   CheckCircle2, 
-  Sparkles, 
+  Gift, 
   ThumbsUp, 
   MessageSquare, 
   Send, 
@@ -209,7 +209,7 @@ export const PostStayFeedbackForm: React.FC<PostStayFeedbackFormProps> = ({ onOp
       {/* Rewards Incentive Alert Banner */}
       <div className="bg-[#fcf8f2] border-b border-[#eedcc8] px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[#17283c]">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+          <Gift className="w-4 h-4 text-amber-600 shrink-0" />
           <span>
             <strong>Rewards Loyalty Privilege:</strong> Receive <strong className="text-amber-800">+250 Cribb Rewards Points</strong> on your member folio upon feedback submission.
           </span>

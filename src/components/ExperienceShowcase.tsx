@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bed, Utensils, CalendarDays, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Bed, Utensils, CalendarDays, Heart, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ROOM_OPTIONS } from '../data/hotelData';
 
 interface ExperienceShowcaseProps {
@@ -71,7 +71,7 @@ export const ExperienceShowcase: React.FC<ExperienceShowcaseProps> = ({ onOpenRe
                   : 'bg-stone-50 text-[#17283c] border-stone-200 hover:bg-stone-100'
               }`}
             >
-              <Sparkles className="w-4 h-4" />
+              <Heart className="w-4 h-4" />
               <span>Spa &amp; Wellness</span>
             </button>
           </div>
