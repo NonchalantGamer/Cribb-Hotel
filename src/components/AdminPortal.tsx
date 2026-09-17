@@ -309,10 +309,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <h2 className="text-base sm:text-lg font-serif font-bold tracking-wide uppercase">
                   Cribb Hotel &amp; Resorts Management Portal
                 </h2>
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
-                  Firestore Live Sync
-                </span>
                 {authorizedStaff && (
                   <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-950 text-blue-200 border border-blue-800">
                     <ShieldCheck className="w-3 h-3 text-blue-400" />
