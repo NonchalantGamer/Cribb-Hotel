@@ -290,13 +290,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       }}
     >
       <div 
-        className="relative w-full max-w-6xl bg-stone-100 shadow-2xl border border-stone-300 overflow-hidden my-auto max-h-[95vh] flex flex-col"
+        className={`relative w-full ${authorizedStaff ? 'max-w-6xl' : 'max-w-xl sm:max-w-2xl'} bg-stone-100 shadow-2xl border border-stone-300 overflow-hidden my-auto max-h-[92vh] sm:max-h-[95vh] flex flex-col`}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Operational Header */}
-        <div className="bg-[#17283c] text-white px-6 py-4 flex items-center justify-between border-b border-stone-700">
+        <div className="bg-[#17283c] text-white px-6 py-4 flex items-center justify-between border-b border-stone-700 flex-shrink-0">
           <div className="flex items-center gap-3">
             <img
               src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
@@ -345,8 +345,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
         {/* ACCESS GATE: Render staff login gate if not authorized */}
         {!authorizedStaff ? (
-          <div className="p-6 sm:p-12 max-w-xl mx-auto my-auto w-full">
-            <div className="bg-white border border-stone-300 p-6 sm:p-8 shadow-md">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 w-full">
+            <div className="max-w-xl mx-auto py-2 pb-8">
+              <div className="bg-white border border-stone-300 p-5 sm:p-8 shadow-md">
               <div className="flex justify-center mb-3">
                 <img
                   src="https://res.cloudinary.com/doujptiz/image/upload/v1789385626/20260914_122910_syhxpu.png"
@@ -465,6 +466,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
             </div>
           </div>
+        </div>
         ) : (
           <>
             {/* Top Global Search & Active Staff Banner */}
